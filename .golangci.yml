@@ -143,4 +143,5 @@ issues:
         - gochecknoinits
         - goconst
         - goerr113
+        - lll
         - wrapcheck
