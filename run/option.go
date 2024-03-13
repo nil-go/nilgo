@@ -19,9 +19,9 @@ func WithPreRun(runs ...func(context.Context) error) Option {
 // until all gates returns without error.
 //
 // All gates must return in limited time to avoid blocking the main runs.
-func WithGate(gate ...func(context.Context) error) Option {
+func WithGate(gates ...func(context.Context) error) Option {
 	return func(opts *options) {
-		opts.gates = append(opts.gates, gate...)
+		opts.gates = append(opts.gates, gates...)
 	}
 }
 
