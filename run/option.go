@@ -25,6 +25,16 @@ func WithStartGate(gates ...func(context.Context) error) Option {
 	}
 }
 
+// WithStopGate provides gates to block the stop of main runs provided in Runner.Run,
+// until all stop gates returns.
+//
+// All stop gates must return in limited time to avoid blocking the main runs.
+func WithStopGate(gates ...func(context.Context) error) Option {
+	return func(opts *options) {
+		opts.stopGates = append(opts.stopGates, gates...)
+	}
+}
+
 type (
 	// Option configures the Runner with specific options.
 	Option  func(*options)
