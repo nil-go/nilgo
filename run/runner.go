@@ -16,9 +16,10 @@ import (
 //
 // To create an Runner, use [New].
 type Runner struct {
-	preRuns []func(context.Context) error
-	gates   []func(context.Context) error
-	running atomic.Bool
+	preRuns    []func(context.Context) error
+	startGates []func(context.Context) error
+	stopGates  []func(context.Context) error
+	running    atomic.Bool
 }
 
 // New creates a new Runner with the given Option(s).
@@ -40,7 +41,7 @@ func New(opts ...Option) *Runner {
 // The execution can be interrupted if any run returns non-nil error,
 // or it receives an OS signal syscall.SIGINT or syscall.SIGTERM.
 // It waits all run return unless it's forcefully terminated by OS.
-func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) error {
+func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) error { //nolint:funlen
 	if e == nil {
 		// Use empty instance instead to avoid nil pointer dereference,
 		// Assignment propagates only to callee but not to caller.
@@ -67,7 +68,7 @@ func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) e
 			},
 		)
 	}
-	e.gates = append(e.gates,
+	e.startGates = append(e.startGates,
 		func(context.Context) error {
 			waitGroup.Wait()
 
@@ -75,24 +76,36 @@ func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) e
 		},
 	)
 
+	// Root context which is used for pre-runs.
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
+	// Context can be terminated by OS signals, which is used for start-gates and parent of context for main runs.
+	signalCtx, signalCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer signalCancel()
+	// Context is used for main runs and stop-gates.
+	runCtx, runCancel := context.WithCancel(ctx)
+	defer runCancel()
+
 	allRuns = append(allRuns,
-		func(ctx context.Context) (err error) { //nolint:nonamedreturns
+		func(context.Context) error {
+			defer runCancel()
+
+			<-signalCtx.Done()
+
+			return Parallel(runCtx, e.stopGates...)
+		},
+		func(context.Context) (err error) { //nolint:nonamedreturns
 			defer func() {
 				cancel(err)
 			}()
 
-			// Terminate signals apply to the runs, then cancel the root context for pre-runs.
-			nctx, ncancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
-			defer ncancel()
-
-			// Wait for all gates to open.
-			if err = Parallel(nctx, e.gates...); err != nil {
+			// Wait for all startGates to open.
+			// Use signalCtx to allow it to be interrupted by OS signals.
+			if err = Parallel(signalCtx, e.startGates...); err != nil {
 				return err
 			}
 
-			return Parallel(nctx, runs...)
+			return Parallel(runCtx, runs...)
 		},
 	)
 
