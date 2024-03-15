@@ -15,13 +15,13 @@ func WithPreRun(runs ...func(context.Context) error) Option {
 	}
 }
 
-// WithGate provides gates to block the execution of main runs provided in Runner.Run,
-// until all gates returns without error.
+// WithStartGate provides gates to block the start of main runs provided in Runner.Run,
+// until all start gates returns without error.
 //
-// All gates must return in limited time to avoid blocking the main runs.
-func WithGate(gates ...func(context.Context) error) Option {
+// All start gates must return in limited time to avoid blocking the main runs.
+func WithStartGate(gates ...func(context.Context) error) Option {
 	return func(opts *options) {
-		opts.gates = append(opts.gates, gates...)
+		opts.startGates = append(opts.startGates, gates...)
 	}
 }
 

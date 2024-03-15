@@ -16,9 +16,9 @@ import (
 //
 // To create an Runner, use [New].
 type Runner struct {
-	preRuns []func(context.Context) error
-	gates   []func(context.Context) error
-	running atomic.Bool
+	preRuns    []func(context.Context) error
+	startGates []func(context.Context) error
+	running    atomic.Bool
 }
 
 // New creates a new Runner with the given Option(s).
@@ -67,7 +67,7 @@ func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) e
 			},
 		)
 	}
-	e.gates = append(e.gates,
+	e.startGates = append(e.startGates,
 		func(context.Context) error {
 			waitGroup.Wait()
 
@@ -87,8 +87,8 @@ func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) e
 			nctx, ncancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 			defer ncancel()
 
-			// Wait for all gates to open.
-			if err = Parallel(nctx, e.gates...); err != nil {
+			// Wait for all startGates to open.
+			if err = Parallel(nctx, e.startGates...); err != nil {
 				return err
 			}
 

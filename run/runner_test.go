@@ -62,14 +62,14 @@ func testcases() []struct {
 			err:         "run error",
 		},
 		{
-			description: "with gate",
-			runner:      run.New(run.WithGate(func(context.Context) error { return nil })),
+			description: "with start gate",
+			runner:      run.New(run.WithStartGate(func(context.Context) error { return nil })),
 			ran:         true,
 		},
 		{
-			description: "gate error",
-			runner:      run.New(run.WithGate(func(context.Context) error { return errors.New("gate error") })),
-			err:         "gate error",
+			description: "start gate error",
+			runner:      run.New(run.WithStartGate(func(context.Context) error { return errors.New("start gate error") })),
+			err:         "start gate error",
 		},
 		{
 			description: "with pre-run",
