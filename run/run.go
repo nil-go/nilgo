@@ -57,7 +57,7 @@ func WithCloser(run func(context.Context) error, closer func() error) func(conte
 		defer cancel(nil)
 
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(2) //nolint:gomnd // for run and closer
+		waitGroup.Add(1)
 		go func() {
 			defer waitGroup.Done()
 
@@ -67,25 +67,13 @@ func WithCloser(run func(context.Context) error, closer func() error) func(conte
 		}()
 		<-ctx.Done()
 
-		// Create a new context for closer function as the original context is done.
-		cctx, ccancel := context.WithCancelCause(context.WithoutCancel(ctx))
-		defer ccancel(nil)
-		go func() {
-			defer waitGroup.Done()
-
-			if err := closer(); err != nil {
-				ccancel(err)
-			}
-		}()
+		err := closer()
 		waitGroup.Wait()
 
-		if err := context.Cause(ctx); err != nil && !errors.Is(err, ctx.Err()) {
-			return err //nolint:wrapcheck
-		}
-		if err := context.Cause(cctx); err != nil && !errors.Is(err, cctx.Err()) {
-			return err //nolint:wrapcheck
+		if e := context.Cause(ctx); e != nil && !errors.Is(e, ctx.Err()) {
+			return e //nolint:wrapcheck
 		}
 
-		return nil
+		return err
 	}
 }
