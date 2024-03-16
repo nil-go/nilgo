@@ -39,14 +39,14 @@ func New(opts ...Option) Runner {
 // The execution can be interrupted if any run returns non-nil error,
 // or it receives an OS signal syscall.SIGINT or syscall.SIGTERM.
 // It waits all run return unless it's forcefully terminated by OS.
-func (e Runner) Run(ctx context.Context, runs ...func(context.Context) error) error {
-	allRuns := make([]func(context.Context) error, 0, len(e.preRuns)+1)
-	startGates := slices.Clone(e.startGates)
-	if len(e.preRuns) > 0 {
+func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) error {
+	allRuns := make([]func(context.Context) error, 0, len(r.preRuns)+1)
+	startGates := slices.Clone(r.startGates)
+	if len(r.preRuns) > 0 {
 		// Add gate to wait for all pre-runs to start.
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(len(e.preRuns))
-		for _, run := range e.preRuns {
+		waitGroup.Add(len(r.preRuns))
+		for _, run := range r.preRuns {
 			run := run
 			allRuns = append(allRuns,
 				func(ctx context.Context) error {
@@ -81,7 +81,7 @@ func (e Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 
 			<-signalCtx.Done()
 
-			return Parallel(runCtx, e.stopGates...)
+			return Parallel(runCtx, r.stopGates...)
 		},
 		func(context.Context) (err error) { //nolint:nonamedreturns
 			defer func() {
