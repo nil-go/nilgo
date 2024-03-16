@@ -20,12 +20,12 @@ func TestRunner_Run(t *testing.T) {
 
 	testcases := []struct {
 		description string
-		runner      *run.Runner
+		runner      run.Runner
 		ran         bool
 		err         string
 	}{
 		{
-			description: "nil runner",
+			description: "empty runner",
 			ran:         true,
 		},
 		{
@@ -94,32 +94,6 @@ func TestRunner_Run(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestRunner_Run_twice(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	var runner run.Runner
-	// As there is no run, it should return immediately.
-	assert.NoError(t, runner.Run(ctx))
-
-	started := make(chan struct{})
-	go func() {
-		err := runner.Run(ctx, func(context.Context) error {
-			close(started)
-			<-ctx.Done()
-
-			return nil
-		})
-		assert.NoError(t, err)
-	}()
-	<-started
-
-	// It should return an error as it's already running.
-	assert.EqualError(t, runner.Run(ctx), "runner is already running")
 }
 
 func TestRunner_Run_signal(t *testing.T) {

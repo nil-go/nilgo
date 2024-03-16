@@ -10,8 +10,8 @@ import "context"
 // It's guaranteed that all goroutines for pre-runs start before the main runs start,
 // and end after the main runs end if it's blocking with [context.Context.Done].
 func WithPreRun(runs ...func(context.Context) error) Option {
-	return func(opts *options) {
-		opts.preRuns = append(opts.preRuns, runs...)
+	return func(options *options) {
+		options.preRuns = append(options.preRuns, runs...)
 	}
 }
 
@@ -20,8 +20,8 @@ func WithPreRun(runs ...func(context.Context) error) Option {
 //
 // All start gates must return in limited time to avoid blocking the main runs.
 func WithStartGate(gates ...func(context.Context) error) Option {
-	return func(opts *options) {
-		opts.startGates = append(opts.startGates, gates...)
+	return func(options *options) {
+		options.startGates = append(options.startGates, gates...)
 	}
 }
 
@@ -30,8 +30,8 @@ func WithStartGate(gates ...func(context.Context) error) Option {
 //
 // All stop gates must return in limited time to avoid blocking the main runs.
 func WithStopGate(gates ...func(context.Context) error) Option {
-	return func(opts *options) {
-		opts.stopGates = append(opts.stopGates, gates...)
+	return func(options *options) {
+		options.stopGates = append(options.stopGates, gates...)
 	}
 }
 

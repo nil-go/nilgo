@@ -5,10 +5,9 @@ package run
 
 import (
 	"context"
-	"errors"
 	"os/signal"
+	"slices"
 	"sync"
-	"sync/atomic"
 	"syscall"
 )
 
@@ -19,17 +18,16 @@ type Runner struct {
 	preRuns    []func(context.Context) error
 	startGates []func(context.Context) error
 	stopGates  []func(context.Context) error
-	running    atomic.Bool
 }
 
 // New creates a new Runner with the given Option(s).
-func New(opts ...Option) *Runner {
+func New(opts ...Option) Runner {
 	option := &options{}
 	for _, opt := range opts {
 		opt(option)
 	}
 
-	return (*Runner)(option)
+	return Runner(*option)
 }
 
 // Run executes the given run in parallel with well-configured runtime,
@@ -41,40 +39,31 @@ func New(opts ...Option) *Runner {
 // The execution can be interrupted if any run returns non-nil error,
 // or it receives an OS signal syscall.SIGINT or syscall.SIGTERM.
 // It waits all run return unless it's forcefully terminated by OS.
-func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) error { //nolint:funlen
-	if e == nil {
-		// Use empty instance instead to avoid nil pointer dereference,
-		// Assignment propagates only to callee but not to caller.
-		e = &Runner{}
-	}
-
-	// Prevent the runner from running concurrently.
-	if e.running.Swap(true) {
-		return errors.New("runner is already running") //nolint:goerr113
-	}
-	defer e.running.Store(false)
-
+func (e Runner) Run(ctx context.Context, runs ...func(context.Context) error) error {
 	allRuns := make([]func(context.Context) error, 0, len(e.preRuns)+1)
-	// Add gate to wait for all pre-runs to start.
-	var waitGroup sync.WaitGroup
-	waitGroup.Add(len(e.preRuns))
-	for _, run := range e.preRuns {
-		run := run
-		allRuns = append(allRuns,
-			func(ctx context.Context) error {
-				defer waitGroup.Done()
+	startGates := slices.Clone(e.startGates)
+	if len(e.preRuns) > 0 {
+		// Add gate to wait for all pre-runs to start.
+		var waitGroup sync.WaitGroup
+		waitGroup.Add(len(e.preRuns))
+		for _, run := range e.preRuns {
+			run := run
+			allRuns = append(allRuns,
+				func(ctx context.Context) error {
+					defer waitGroup.Done()
 
-				return run(ctx)
+					return run(ctx)
+				},
+			)
+		}
+		startGates = append(startGates,
+			func(context.Context) error {
+				waitGroup.Wait()
+
+				return nil
 			},
 		)
 	}
-	e.startGates = append(e.startGates,
-		func(context.Context) error {
-			waitGroup.Wait()
-
-			return nil
-		},
-	)
 
 	// Root context which is used for pre-runs.
 	ctx, cancel := context.WithCancelCause(ctx)
@@ -101,7 +90,7 @@ func (e *Runner) Run(ctx context.Context, runs ...func(context.Context) error) e
 
 			// Wait for all startGates to open.
 			// Use signalCtx to allow it to be interrupted by OS signals.
-			if err = Parallel(signalCtx, e.startGates...); err != nil {
+			if err = Parallel(signalCtx, startGates...); err != nil {
 				return err
 			}
 
