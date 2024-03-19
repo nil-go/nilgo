@@ -7,6 +7,7 @@ package grpc
 import (
 	"log/slog"
 
+	"github.com/nil-go/konf"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
@@ -37,6 +38,20 @@ func WithLogHandler(handler slog.Handler) grpc.ServerOption {
 	}
 }
 
+// WithConfigService registers the pb.ConfigServiceServer implement to the gRPC server.
+//
+// It uses the global konf.Config if the configs are not provided.
+func WithConfigService(configs ...*konf.Config) grpc.ServerOption {
+	return serverOptionFunc{
+		fn: func(options *serverOptions) {
+			if options.configs == nil {
+				options.configs = []*konf.Config{}
+			}
+			options.configs = append(options.configs, configs...)
+		},
+	}
+}
+
 type (
 	serverOptionFunc struct {
 		grpc.EmptyServerOption
@@ -44,6 +59,7 @@ type (
 	}
 	serverOptions struct {
 		handler  slog.Handler
+		configs  []*konf.Config
 		otelOpts []otelgrpc.Option
 		grpcOpts []grpc.ServerOption
 	}

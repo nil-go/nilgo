@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/nil-go/konf"
 	"github.com/nil-go/sloth/sampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,6 +30,7 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 
 	ngrpc "github.com/nil-go/nilgo/grpc"
+	pb "github.com/nil-go/nilgo/grpc/pb/nilgo/v1"
 )
 
 func TestRun(t *testing.T) {
@@ -70,6 +72,30 @@ func TestRun(t *testing.T) {
 				interop.DoEmptyUnaryCall(ctx, client)
 				interop.DoLargeUnaryCall(ctx, client)
 				interop.DoEmptyStream(ctx, client)
+			},
+		},
+		{
+			description: "default config service",
+			server: func() *grpc.Server {
+				return ngrpc.NewServer(ngrpc.WithConfigService())
+			},
+			check: func(conn *grpc.ClientConn) {
+				client := pb.NewConfigServiceClient(conn)
+				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
+				require.NoError(t, err)
+				assert.NotEmpty(t, resp.GetExplanation())
+			},
+		},
+		{
+			description: "config service",
+			server: func() *grpc.Server {
+				return ngrpc.NewServer(ngrpc.WithConfigService(konf.New(), konf.New()))
+			},
+			check: func(conn *grpc.ClientConn) {
+				client := pb.NewConfigServiceClient(conn)
+				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
+				require.NoError(t, err)
+				assert.Equal(t, "user has no configuration.\n\n\n-----\nuser has no configuration.\n\n", resp.GetExplanation())
 			},
 		},
 		{

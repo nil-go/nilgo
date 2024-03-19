@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package nilgo.v1;
+
+service ConfigService {
+  // Explain returns the detail information about how Config resolve each value from loaders for the given path.
+  rpc Explain(ExplainRequest) returns (ExplainResponse);
+}
+
+message ExplainRequest {
+  // The path of the configuration to be explained.
+  string path = 1;
+}
+
+message ExplainResponse {
+  // The detail information about how Config resolve each value from loaders for the given path.
+  // It blurs all sensitive information.
+  string explanation = 1;
+}

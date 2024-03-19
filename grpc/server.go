@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 
 	"github.com/nil-go/nilgo/grpc/log"
+	pb "github.com/nil-go/nilgo/grpc/pb/nilgo/v1"
 )
 
 // NewServer creates a new gRPC server with the given options.
@@ -42,8 +43,12 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 	if option.otelOpts != nil {
 		builtInOpts = append(builtInOpts, grpc.StatsHandler(otelgrpc.NewServerHandler(option.otelOpts...)))
 	}
+	server := grpc.NewServer(append(builtInOpts, option.grpcOpts...)...)
+	if option.configs != nil {
+		pb.RegisterConfigServiceServer(server, &ConfigServiceServer{configs: option.configs})
+	}
 
-	return grpc.NewServer(append(builtInOpts, option.grpcOpts...)...)
+	return server
 }
 
 // Run wraps start/stop of the gRPC server in a single run function
