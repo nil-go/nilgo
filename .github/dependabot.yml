@@ -9,6 +9,13 @@ updates:
       interval: weekly
 
   - package-ecosystem: gomod
+    directory: /gcp
+    labels:
+      - Skip-Changelog
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: gomod
     directory: /grpc
     labels:
       - Skip-Changelog

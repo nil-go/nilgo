@@ -51,6 +51,7 @@ jobs:
         with:
           script: |
             const modules = [
+              'gcp',
               'grpc'
             ]
             for (const module of modules) {
