@@ -6,11 +6,18 @@ updates:
     labels:
       - Skip-Changelog
     schedule:
-      interval: daily
+      interval: weekly
+
+  - package-ecosystem: gomod
+    directory: /grpc
+    labels:
+      - Skip-Changelog
+    schedule:
+      interval: weekly
 
   - package-ecosystem: github-actions
     directory: /
     labels:
       - Skip-Changelog
     schedule:
-      interval: daily
+      interval: weekly

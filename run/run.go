@@ -65,8 +65,8 @@ func WithCloser(run func(context.Context) error, closer func() error) func(conte
 				cancel(err)
 			}
 		}()
-		<-ctx.Done()
 
+		<-ctx.Done()
 		err := closer()
 		waitGroup.Wait()
 
