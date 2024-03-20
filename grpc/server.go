@@ -60,7 +60,7 @@ func Run(server *grpc.Server, addresses ...string) func(context.Context) error {
 		server = grpc.NewServer()
 	}
 	if len(addresses) == 0 {
-		addresses = []string{"localhost:8080"}
+		addresses = []string{":8080"}
 	}
 
 	// Register health service if necessary.
@@ -117,7 +117,7 @@ func Run(server *grpc.Server, addresses ...string) func(context.Context) error {
 				healthServer.Shutdown()
 			}
 			server.GracefulStop()
-			slog.Log(ctx, slog.LevelInfo, "gRPC Server is stopped.")
+			slog.LogAttrs(ctx, slog.LevelInfo, "gRPC Server is stopped.")
 		}()
 		waitGroup.Wait()
 
