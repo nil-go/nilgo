@@ -220,10 +220,10 @@ func TestRun(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, hcResp.GetStatus())
 
-			rfClient := grpc_reflection_v1.NewServerReflectionClient(conn)
-			rfResp, err := rfClient.ServerReflectionInfo(ctx)
+			refClient := grpc_reflection_v1.NewServerReflectionClient(conn)
+			stream, err := refClient.ServerReflectionInfo(ctx)
 			require.NoError(t, err)
-			require.NotNil(t, rfResp)
+			require.NoError(t, stream.CloseSend())
 
 			if testcase.check != nil {
 				testcase.check(conn)
