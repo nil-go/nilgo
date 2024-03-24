@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 
@@ -59,6 +60,7 @@ func Run(server *grpc.Server, addresses ...string) func(context.Context) error {
 	if server == nil {
 		server = grpc.NewServer()
 	}
+	addresses = slices.DeleteFunc(addresses, func(addr string) bool { return addr == "" })
 	if len(addresses) == 0 {
 		addresses = []string{":8080"}
 	}
