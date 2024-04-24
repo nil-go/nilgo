@@ -204,7 +204,7 @@ func TestRun(t *testing.T) {
 
 			endpoint := t.TempDir() + "/test.sock"
 			go func() {
-				err := ngrpc.Run(testcase.server(), "unix://"+endpoint, "")(ctx)
+				err := ngrpc.Run(testcase.server(), "unix://"+endpoint)(ctx)
 				assert.NoError(t, err)
 			}()
 

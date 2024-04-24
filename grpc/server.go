@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net"
 	"os"
-	"slices"
 	"strings"
 	"sync"
 
@@ -56,13 +55,16 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 // with listening on multiple tcp and unix socket address.
 //
 // It also resister health and reflection services if the services have not registered.
-func Run(server *grpc.Server, addresses ...string) func(context.Context) error { //nolint:cyclop,funlen
+func Run(server *grpc.Server, addresses ...string) func(context.Context) error { //nolint:cyclop,funlen,gocognit
 	if server == nil {
 		server = grpc.NewServer()
 	}
-	addresses = slices.DeleteFunc(addresses, func(addr string) bool { return addr == "" })
 	if len(addresses) == 0 {
-		addresses = []string{":8080"}
+		address := "localhost:8080"
+		if a := os.Getenv("PORT"); a != "" {
+			address = ":" + a
+		}
+		addresses = []string{address}
 	}
 
 	// Register health service if necessary.
