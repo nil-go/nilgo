@@ -50,7 +50,7 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 			run := run
 			allRuns = append(allRuns,
 				func(ctx context.Context) error {
-					defer waitGroup.Done()
+					waitGroup.Done()
 
 					return run(ctx)
 				},

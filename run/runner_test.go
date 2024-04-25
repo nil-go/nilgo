@@ -35,8 +35,12 @@ func TestRunner_Run(t *testing.T) {
 		},
 		{
 			description: "with pre-run",
-			runner:      run.New(run.WithPreRun(func(context.Context) error { return nil })),
-			ran:         true,
+			runner: run.New(run.WithPreRun(func(ctx context.Context) error {
+				<-ctx.Done()
+
+				return nil
+			})),
+			ran: true,
 		},
 		{
 			description: "pre-run error",

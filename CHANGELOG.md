@@ -11,3 +11,4 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Add Runner for parallel execution (#9).
 - Support gRPC server (#15).
+- Add nilgo.Run (#22).
