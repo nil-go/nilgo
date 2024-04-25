@@ -32,9 +32,9 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Equal(t, 1, len(opts))
+				assert.Len(t, opts, 1)
 				_, ok := opts[0].(slog.Handler)
-				assert.Equal(t, true, ok)
+				assert.True(t, ok)
 			},
 		},
 		{
@@ -49,9 +49,9 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Equal(t, 1, len(opts))
+				assert.Len(t, opts, 1)
 				_, ok := opts[0].(slog.Handler)
-				assert.Equal(t, true, ok)
+				assert.True(t, ok)
 			},
 		},
 		{
@@ -64,11 +64,11 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Equal(t, 2, len(opts))
+				assert.Len(t, opts, 2)
 				_, ok := opts[0].(slog.Handler)
-				assert.Equal(t, true, ok)
+				assert.True(t, ok)
 				_, ok = opts[1].(func(context.Context) error)
-				assert.Equal(t, true, ok)
+				assert.True(t, ok)
 			},
 		},
 		{
@@ -80,9 +80,9 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Equal(t, 1, len(opts))
+				assert.Len(t, opts, 1)
 				_, ok := opts[0].(slog.Handler)
-				assert.Equal(t, true, ok)
+				assert.True(t, ok)
 			},
 		},
 	}
