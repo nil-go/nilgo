@@ -27,7 +27,7 @@ func TestRun(t *testing.T) {
 	)
 
 	err := nilgo.Run(
-		log.WithHandler(slog.NewJSONHandler(&buf, &slog.HandlerOptions{
+		slog.NewJSONHandler(&buf, &slog.HandlerOptions{
 			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 				if a.Key == slog.TimeKey && len(groups) == 0 {
 					return slog.Attr{}
@@ -35,7 +35,8 @@ func TestRun(t *testing.T) {
 
 				return a
 			},
-		})),
+		}),
+		log.WithSampler(func(context.Context) bool { return true }),
 		config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
 		run.WithPreRun(func(context.Context) error {
 			started = true
