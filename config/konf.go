@@ -33,14 +33,15 @@ import (
 
 // New creates a new konf.Config with the given Option(s).
 func New(opts ...Option) (*konf.Config, error) {
-	options := options{
-		files: []string{"config/config.yaml"},
-	}
+	options := options{}
 	for _, opt := range opts {
 		opt(&options)
 	}
 	if files := konf.Get[[]string]("config.file"); len(files) > 0 {
 		options.files = files
+	}
+	if len(options.files) == 0 {
+		options.files = []string{"config/config.yaml"}
 	}
 
 	config := konf.New(options.opts...)
@@ -55,8 +56,12 @@ func New(opts ...Option) (*konf.Config, error) {
 			slog.Warn("Config file not found.", "file", file)
 		}
 	}
-	if err := config.Load(env.New()); err != nil {
-		return nil, fmt.Errorf("load from env: %w", err)
+	// Ignore error: env loader does not return error.
+	_ = config.Load(env.New())
+	if options.fn != nil {
+		if err := options.fn(config); err != nil {
+			return nil, err
+		}
 	}
 
 	return config, nil

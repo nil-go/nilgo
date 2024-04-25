@@ -51,6 +51,9 @@ func New(opts ...Option) *slog.Logger {
 	handler = rate.New(option.handler)
 
 	if option.asTraceEvent {
+		// If the logger is configured to log as trace event, it disables sampling.
+		// However, sampling handler still can buffer and logs if there is a error log,
+		// or there is no valid trace context.
 		option.sampler = func(ctx context.Context) bool { return !trace.SpanContextFromContext(ctx).IsValid() }
 	}
 	if option.sampler != nil {

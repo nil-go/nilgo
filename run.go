@@ -20,25 +20,15 @@ import (
 // The runner passed in are running parallel without explicit order,
 // which means it should not have temporal dependency between each other.
 //
-// The running can be interrupted if any runner returns non-nil error,
-// or it receives an OS signal. It waits all runners return unless it's forcefully killed by OS.
-//
-// It panics on first non-nil error (if any) received. It does not recover panic,
-// which causes running crashes if any panic happens without recovery in runner.
+// The running can be interrupted if any runner returns non-nil error, or it receives an OS signal.
+// It waits all runners return unless it's forcefully killed by OS.
 //
 // For now, it only can pass one of following types for args:
 //   - config.Option
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
-func Run(args ...any) {
-	if err := runInternal(args); err != nil {
-		slog.Error("Panic due to unrecoverable error.", "error", err)
-		panic(err.Error()) // It's unrecoverable.
-	}
-}
-
-func runInternal(args []any) error {
+func Run(args ...any) error {
 	var (
 		configOpts []config.Option
 		logOpts    []log.Option
