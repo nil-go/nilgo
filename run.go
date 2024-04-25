@@ -39,6 +39,8 @@ func Run(args ...any) error {
 		switch opt := arg.(type) {
 		case config.Option:
 			configOpts = append(configOpts, opt)
+		case slog.Handler:
+			logOpts = append(logOpts, log.WithHandler(opt))
 		case log.Option:
 			logOpts = append(logOpts, opt)
 		case run.Option:
