@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -27,11 +26,9 @@ import (
 //
 // It wraps grpc.NewServer with built-in interceptors, e.g recovery, log buffering, and statsHandler.
 func NewServer(opts ...grpc.ServerOption) *grpc.Server {
-	// Redirect gRPC log to slog.
-	grpclog.SetLoggerV2(internal.NewSlogger(slog.Default().Handler()))
-
+	handler := slog.Default().Handler()
 	builtInOpts := []grpc.ServerOption{grpc.WaitForHandlers(true)}
-	if internal.IsSamplingHandler(slog.Default().Handler()) {
+	if internal.IsSamplingHandler(handler) {
 		builtInOpts = append(builtInOpts,
 			grpc.ChainUnaryInterceptor(internal.BufferUnaryInterceptor),
 			grpc.ChainStreamInterceptor(internal.BufferStreamInterceptor),
@@ -40,8 +37,8 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 	// Add recovery interceptors after buffer interceptors so the info logs in the same session
 	// can be emitted for trouble shooting.
 	builtInOpts = append(builtInOpts,
-		grpc.ChainUnaryInterceptor(internal.RecoveryUnaryInterceptor(slog.Default().Handler())),
-		grpc.ChainStreamInterceptor(internal.RecoveryStreamInterceptor(slog.Default().Handler())),
+		grpc.ChainUnaryInterceptor(internal.RecoveryUnaryInterceptor(handler)),
+		grpc.ChainStreamInterceptor(internal.RecoveryStreamInterceptor(handler)),
 	)
 	builtInOpts = append(builtInOpts, opts...)
 
