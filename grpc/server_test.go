@@ -7,12 +7,9 @@ package grpc_test
 
 import (
 	"context"
-	"log/slog"
-	"strings"
 	"testing"
 
 	"github.com/nil-go/konf"
-	"github.com/nil-go/sloth/sampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -29,8 +26,6 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	buf := new(strings.Builder)
-
 	testcases := []struct {
 		description string
 		server      func() *grpc.Server
@@ -93,16 +88,7 @@ func TestRun(t *testing.T) {
 		{
 			description: "panic recovery",
 			server: func() *grpc.Server {
-				handler := slog.NewTextHandler(buf, &slog.HandlerOptions{
-					ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
-						if len(groups) == 0 && attr.Key == slog.TimeKey {
-							return slog.Attr{}
-						}
-
-						return attr
-					},
-				})
-				server := ngrpc.NewServer(ngrpc.LogHandler(handler))
+				server := ngrpc.NewServer()
 				grpc_testing.RegisterTestServiceServer(server, panicServer{interop.NewTestServer()})
 
 				return server
@@ -112,52 +98,22 @@ func TestRun(t *testing.T) {
 				resp, err := client.UnimplementedCall(context.Background(), &grpc_testing.Empty{})
 				require.EqualError(t, err, "rpc error: code = Internal desc = ")
 				assert.Nil(t, resp)
-				assert.Equal(t, `level=ERROR msg="Panic Recovered" error="unimplemented panic"
-`, buf.String())
-				buf.Reset()
 			},
 		},
 		{
 			description: "sampling handler",
 			server: func() *grpc.Server {
 				t.Setenv("GRPC_GO_LOG_SEVERITY_LEVEL", "info")
-				var handler slog.Handler = slog.NewTextHandler(buf, &slog.HandlerOptions{
-					ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
-						if len(groups) == 0 && attr.Key == slog.TimeKey {
-							return slog.Attr{}
-						}
 
-						return attr
-					},
-				})
-				handler = sampling.New(handler, func(context.Context) bool { return false })
-
-				return ngrpc.NewServer(ngrpc.LogHandler(handler))
-			},
-			check: func(*grpc.ClientConn) {
-				assert.Empty(t, buf)
-				buf.Reset()
+				return ngrpc.NewServer()
 			},
 		},
 		{
 			description: "slog handler",
 			server: func() *grpc.Server {
 				t.Setenv("GRPC_GO_LOG_SEVERITY_LEVEL", "info")
-				handler := slog.NewTextHandler(buf, &slog.HandlerOptions{
-					ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
-						if len(groups) == 0 && attr.Key == slog.TimeKey {
-							return slog.Attr{}
-						}
 
-						return attr
-					},
-				})
-
-				return ngrpc.NewServer(ngrpc.LogHandler(handler))
-			},
-			check: func(*grpc.ClientConn) {
-				assert.NotEmpty(t, buf)
-				buf.Reset()
+				return ngrpc.NewServer()
 			},
 		},
 	}

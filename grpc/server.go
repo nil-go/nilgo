@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net"
 	"os"
-	"strings"
 	"sync"
 
 	"google.golang.org/grpc"
@@ -27,19 +26,9 @@ import (
 //
 // It wraps grpc.NewServer with built-in interceptors, e.g recovery, log buffering, and statsHandler.
 func NewServer(opts ...grpc.ServerOption) *grpc.Server {
-	option := &serverOptions{}
-	for _, opt := range opts {
-		switch so := opt.(type) {
-		case serverOptionFunc:
-			so.fn(option)
-		default:
-			option.grpcOpts = append(option.grpcOpts, opt)
-		}
-	}
-
-	builtInOpts := log.ServerOptions(option.handler)
+	builtInOpts := log.ServerOptions()
 	builtInOpts = append(builtInOpts, grpc.WaitForHandlers(true))
-	server := grpc.NewServer(append(builtInOpts, option.grpcOpts...)...)
+	server := grpc.NewServer(append(builtInOpts, opts...)...)
 
 	return server
 }
@@ -62,7 +51,7 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 		if a := os.Getenv("PORT"); a != "" {
 			address = ":" + a
 		}
-		option.addresses = []string{address}
+		option.addresses = []socket{{network: "tcp", address: address}}
 	}
 
 	// Register config service if necessary.
@@ -92,16 +81,12 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 			go func() {
 				defer waitGroup.Done()
 
-				network := "tcp"
-				if strings.HasPrefix(addr, "unix:") {
-					network = "unix"
-					addr = strings.TrimPrefix(addr[5:], "//")
-
-					if err := os.RemoveAll(addr); err != nil {
+				if addr.network == "unix" {
+					if err := os.RemoveAll(addr.address); err != nil {
 						slog.LogAttrs(ctx, slog.LevelWarn, "Could not delete unix socket file.", slog.Any("error", err))
 					}
 				}
-				listener, err := net.Listen(network, addr)
+				listener, err := net.Listen(addr.network, addr.address)
 				if err != nil {
 					cancel(fmt.Errorf("start listener: %w", err))
 

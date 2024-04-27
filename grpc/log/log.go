@@ -13,10 +13,8 @@ import (
 // ServerOptions returns gRPC server options for log related interceptors,
 // which includes panic recovery, buffer for sampling.Handler.
 // It also replaces the default gRPC logger with the provided slog.Handler.
-func ServerOptions(handler slog.Handler) []grpc.ServerOption {
-	if handler == nil {
-		handler = slog.Default().Handler()
-	}
+func ServerOptions() []grpc.ServerOption {
+	handler := slog.Default().Handler()
 	grpclog.SetLoggerV2(NewSlogger(handler))
 
 	var (

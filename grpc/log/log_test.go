@@ -6,11 +6,8 @@
 package log_test
 
 import (
-	"log/slog"
 	"testing"
 
-	"github.com/nil-go/sloth/rate"
-	"github.com/nil-go/sloth/sampling"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/nil-go/nilgo/grpc/log"
@@ -21,18 +18,15 @@ func TestServerOptions(t *testing.T) {
 
 	testcases := []struct {
 		description string
-		handler     slog.Handler
 	}{
 		{
 			description: "nil handler",
 		},
 		{
 			description: "sampling handler",
-			handler:     sampling.Handler{},
 		},
 		{
 			description: "non sampling handler",
-			handler:     rate.Handler{},
 		},
 	}
 
@@ -42,7 +36,7 @@ func TestServerOptions(t *testing.T) {
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
-			options := log.ServerOptions(testcase.handler)
+			options := log.ServerOptions()
 			assert.Len(t, options, 2)
 		})
 	}
