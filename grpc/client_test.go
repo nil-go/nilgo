@@ -11,5 +11,5 @@ import (
 
 func TestLinkName(*testing.T) {
 	// Should not panic.
-	ngrpc.WithDialOption()
+	ngrpc.WithGlobalDialOption()
 }

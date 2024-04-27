@@ -12,10 +12,10 @@ import (
 //go:linkname addGlobalDialOptions google.golang.org/grpc/internal.AddGlobalDialOptions
 var addGlobalDialOptions any //nolint:gochecknoglobals // func(opt ...DialOption)
 
-// WithDialOption adds global dial options for all gRPC clients.
+// WithGlobalDialOption adds global dial options for all gRPC clients.
 //
 // CAUTION: This function may break in new version of `google.golang.org/grpc`
 // since it is using internal package from grpc.
-func WithDialOption(opts ...grpc.DialOption) {
+func WithGlobalDialOption(opts ...grpc.DialOption) {
 	addGlobalDialOptions.(func(opt ...grpc.DialOption))(opts...) //nolint:forcetypeassert
 }
