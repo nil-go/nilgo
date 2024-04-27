@@ -62,7 +62,7 @@ func logPanic(ctx context.Context, handler slog.Handler, message any) error {
 	}
 
 	var pcs [1]uintptr
-	runtime.Callers(4, pcs[:]) //nolint:gomnd // Skip runtime.Callers, panic, this function and telemetry.
+	runtime.Callers(4, pcs[:]) //nolint:gomnd // Skip runtime.Callers, panic, this function and interceptor.
 	r := slog.NewRecord(time.Now(), slog.LevelError, "Panic Recovered", pcs[0])
 	r.AddAttrs(slog.Any("error", err))
 	_ = handler.Handle(ctx, r) // Ignore error: It's fine to lose log.
