@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package log_test
+package internal_test
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/grpclog"
 
-	"github.com/nil-go/nilgo/grpc/log"
+	"github.com/nil-go/nilgo/grpc/internal"
 )
 
 func TestSlogger(t *testing.T) {
@@ -21,7 +21,7 @@ func TestSlogger(t *testing.T) {
 	t.Setenv("GRPC_GO_LOG_VERBOSITY_LEVEL", "1")
 
 	buf := new(bytes.Buffer)
-	logger := log.NewSlogger(slog.NewTextHandler(buf, &slog.HandlerOptions{
+	logger := internal.NewSlogger(slog.NewTextHandler(buf, &slog.HandlerOptions{
 		AddSource: true,
 		ReplaceAttr: func(groups []string, attr slog.Attr) slog.Attr {
 			if len(groups) == 0 && attr.Key == slog.TimeKey {

@@ -1,51 +1,54 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-//nolint:ireturn
 package grpc
 
 import (
-	"log/slog"
+	"slices"
+	"strings"
 
 	"github.com/nil-go/konf"
-	"google.golang.org/grpc"
 )
 
-// LogHandler provides the slog.Handler for gRPC logs.
+// WithAddress provides the address listened by the gRPC server.
+// It should be either tcp address like `:8080` or unix socket address like `unix:nilgo.sock`.
 //
-// If the handler is not provided, it uses handler from slog.Default().
-func LogHandler(handler slog.Handler) grpc.ServerOption {
-	return serverOptionFunc{
-		fn: func(options *serverOptions) {
-			if handler != nil {
-				options.handler = handler
+// By default, it listens on `localhost:8080`  or `:${PORT}` if the environment variable exists.
+func WithAddress(addresses ...string) Option {
+	return func(options *options) {
+		options.addresses = slices.Grow(options.addresses, len(addresses))
+		for _, address := range addresses {
+			network := "tcp"
+			if strings.HasPrefix(address, "unix:") {
+				network = "unix"
+				address = strings.TrimPrefix(address[5:], "//")
 			}
-		},
+			options.addresses = append(options.addresses, socket{network: network, address: address})
+		}
 	}
 }
 
-// ConfigService registers the pb.ConfigServiceServer implement to the gRPC server.
+// WithConfigService registers the pb.ConfigServiceServer implement to the gRPC server.
 //
 // It uses the global konf.Config if the configs are not provided.
-func ConfigService(configs ...*konf.Config) grpc.ServerOption {
-	return serverOptionFunc{
-		fn: func(options *serverOptions) {
-			if options.configs == nil {
-				options.configs = []*konf.Config{}
-			}
-			options.configs = append(options.configs, configs...)
-		},
+func WithConfigService(configs ...*konf.Config) Option {
+	return func(options *options) {
+		if options.configs == nil {
+			options.configs = []*konf.Config{}
+		}
+		options.configs = append(options.configs, configs...)
 	}
 }
 
 type (
-	serverOptionFunc struct {
-		grpc.EmptyServerOption
-		fn func(*serverOptions)
+	// Option configures the runner for the gRPC server.
+	Option  func(*options)
+	options struct {
+		addresses []socket
+		configs   []*konf.Config
 	}
-	serverOptions struct {
-		handler  slog.Handler
-		configs  []*konf.Config
-		grpcOpts []grpc.ServerOption
+	socket struct {
+		network string
+		address string
 	}
 )
