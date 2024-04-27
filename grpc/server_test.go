@@ -34,6 +34,7 @@ func TestRun(t *testing.T) {
 	testcases := []struct {
 		description string
 		server      func() *grpc.Server
+		opts        []ngrpc.Option
 		check       func(conn *grpc.ClientConn)
 	}{
 		{
@@ -69,9 +70,8 @@ func TestRun(t *testing.T) {
 		},
 		{
 			description: "default config service",
-			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.ConfigService())
-			},
+			server:      func() *grpc.Server { return ngrpc.NewServer() },
+			opts:        []ngrpc.Option{ngrpc.WithConfigService()},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
 				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
@@ -81,9 +81,8 @@ func TestRun(t *testing.T) {
 		},
 		{
 			description: "config service",
-			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.ConfigService(konf.New(), konf.New()))
-			},
+			server:      func() *grpc.Server { return ngrpc.NewServer() },
+			opts:        []ngrpc.Option{ngrpc.WithConfigService(konf.New(), konf.New())},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
 				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
@@ -172,7 +171,7 @@ func TestRun(t *testing.T) {
 
 			endpoint := t.TempDir() + "/test.sock"
 			go func() {
-				err := ngrpc.Run(testcase.server(), "unix://"+endpoint)(ctx)
+				err := ngrpc.Run(testcase.server(), append(testcase.opts, ngrpc.WithAddress("unix://"+endpoint))...)(ctx)
 				assert.NoError(t, err)
 			}()
 

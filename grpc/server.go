@@ -40,9 +40,6 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 	builtInOpts := log.ServerOptions(option.handler)
 	builtInOpts = append(builtInOpts, grpc.WaitForHandlers(true))
 	server := grpc.NewServer(append(builtInOpts, option.grpcOpts...)...)
-	if option.configs != nil {
-		pb.RegisterConfigServiceServer(server, &ConfigServiceServer{configs: option.configs})
-	}
 
 	return server
 }
@@ -51,18 +48,31 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 // with listening on multiple tcp and unix socket address.
 //
 // It also resister health and reflection services if the services have not registered.
-func Run(server *grpc.Server, addresses ...string) func(context.Context) error { //nolint:cyclop,funlen,gocognit
+func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //nolint:cyclop,funlen,gocognit
 	if server == nil {
 		server = grpc.NewServer()
 	}
-	if len(addresses) == 0 {
+
+	option := &options{}
+	for _, opt := range opts {
+		opt(option)
+	}
+	if len(option.addresses) == 0 {
 		address := "localhost:8080"
 		if a := os.Getenv("PORT"); a != "" {
 			address = ":" + a
 		}
-		addresses = []string{address}
+		option.addresses = []string{address}
 	}
 
+	// Register config service if necessary.
+	if option.configs != nil {
+		pb.RegisterConfigServiceServer(server, &ConfigServiceServer{configs: option.configs})
+	}
+	// Register reflection service if necessary.
+	if _, exist := server.GetServiceInfo()[grpc_reflection_v1.ServerReflection_ServiceDesc.ServiceName]; !exist {
+		reflection.Register(server)
+	}
 	// Register health service if necessary.
 	var healthServer *health.Server
 	if _, exist := server.GetServiceInfo()[grpc_health_v1.Health_ServiceDesc.ServiceName]; !exist {
@@ -70,18 +80,14 @@ func Run(server *grpc.Server, addresses ...string) func(context.Context) error {
 		defer healthServer.Resume()
 		grpc_health_v1.RegisterHealthServer(server, healthServer)
 	}
-	// Register reflection service if necessary.
-	if _, exist := server.GetServiceInfo()[grpc_reflection_v1.ServerReflection_ServiceDesc.ServiceName]; !exist {
-		reflection.Register(server)
-	}
 
 	return func(ctx context.Context) error {
 		ctx, cancel := context.WithCancelCause(ctx)
 		defer cancel(nil)
 
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(len(addresses) + 1)
-		for _, addr := range addresses {
+		waitGroup.Add(len(option.addresses) + 1)
+		for _, addr := range option.addresses {
 			addr := addr
 			go func() {
 				defer waitGroup.Done()
