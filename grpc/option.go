@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-// WithLogHandler provides the slog.Handler for gRPC logs.
+// LogHandler provides the slog.Handler for gRPC logs.
 //
 // If the handler is not provided, it uses handler from slog.Default().
-func WithLogHandler(handler slog.Handler) grpc.ServerOption {
+func LogHandler(handler slog.Handler) grpc.ServerOption {
 	return serverOptionFunc{
 		fn: func(options *serverOptions) {
 			if handler != nil {
@@ -24,10 +24,10 @@ func WithLogHandler(handler slog.Handler) grpc.ServerOption {
 	}
 }
 
-// WithConfigService registers the pb.ConfigServiceServer implement to the gRPC server.
+// ConfigService registers the pb.ConfigServiceServer implement to the gRPC server.
 //
 // It uses the global konf.Config if the configs are not provided.
-func WithConfigService(configs ...*konf.Config) grpc.ServerOption {
+func ConfigService(configs ...*konf.Config) grpc.ServerOption {
 	return serverOptionFunc{
 		fn: func(options *serverOptions) {
 			if options.configs == nil {

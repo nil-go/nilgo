@@ -70,7 +70,7 @@ func TestRun(t *testing.T) {
 		{
 			description: "default config service",
 			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.WithConfigService())
+				return ngrpc.NewServer(ngrpc.ConfigService())
 			},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
@@ -82,7 +82,7 @@ func TestRun(t *testing.T) {
 		{
 			description: "config service",
 			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.WithConfigService(konf.New(), konf.New()))
+				return ngrpc.NewServer(ngrpc.ConfigService(konf.New(), konf.New()))
 			},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
@@ -103,7 +103,7 @@ func TestRun(t *testing.T) {
 						return attr
 					},
 				})
-				server := ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				server := ngrpc.NewServer(ngrpc.LogHandler(handler))
 				grpc_testing.RegisterTestServiceServer(server, panicServer{interop.NewTestServer()})
 
 				return server
@@ -133,7 +133,7 @@ func TestRun(t *testing.T) {
 				})
 				handler = sampling.New(handler, func(context.Context) bool { return false })
 
-				return ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				return ngrpc.NewServer(ngrpc.LogHandler(handler))
 			},
 			check: func(*grpc.ClientConn) {
 				assert.Empty(t, buf)
@@ -154,7 +154,7 @@ func TestRun(t *testing.T) {
 					},
 				})
 
-				return ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				return ngrpc.NewServer(ngrpc.LogHandler(handler))
 			},
 			check: func(*grpc.ClientConn) {
 				assert.NotEmpty(t, buf)
