@@ -31,8 +31,7 @@ func WithAddress(addresses ...string) Option {
 
 // WithTimeout provides the duration that timeout http request.
 //
-// By default, it has no timeout, which depends on the reverse proxy
-// (e.g. API Gateway, Load Balancer, etc.) to cancel the request with timeout.
+// By default, it has 10 seconds timeout.
 func WithTimeout(timeout time.Duration) Option {
 	return func(options *options) {
 		options.timeout = timeout

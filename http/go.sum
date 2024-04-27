@@ -2,3 +2,7 @@ github.com/nil-go/konf v1.1.0 h1:2rX5lC9B/oo31IuWOeb1Hd0M4UEx3WTm+hsQQPF392Y=
 github.com/nil-go/konf v1.1.0/go.mod h1:ULW6PmJzWMd0F4KKNJQPhWD6Zu5eoX9U1C9SW2BPAr4=
 github.com/nil-go/sloth v0.3.0 h1:lAqd8/pH6psoXZDpScCefY+3V9PVfJnIyOqMK1GSvwo=
 github.com/nil-go/sloth v0.3.0/go.mod h1:SE8dLU9DLYeuLtu3kHp9PUEyj0OwUGKvTjSpx8tPdwo=
+golang.org/x/net v0.24.0 h1:1PcaxkF854Fu3+lvBIx5SYn9wRlBzzcnHZSiaFFAb0w=
+golang.org/x/net v0.24.0/go.mod h1:2Q7sJY5mzlzWjKtYUEXSlBWCdyaioyXzRB2RtU8KVE8=
+golang.org/x/text v0.14.0 h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=
+golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
