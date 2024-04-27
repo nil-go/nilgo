@@ -13,12 +13,13 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 
-	"github.com/nil-go/nilgo/grpc/log"
+	"github.com/nil-go/nilgo/grpc/internal"
 	pb "github.com/nil-go/nilgo/grpc/pb/nilgo/v1"
 )
 
@@ -26,11 +27,25 @@ import (
 //
 // It wraps grpc.NewServer with built-in interceptors, e.g recovery, log buffering, and statsHandler.
 func NewServer(opts ...grpc.ServerOption) *grpc.Server {
-	builtInOpts := log.ServerOptions()
-	builtInOpts = append(builtInOpts, grpc.WaitForHandlers(true))
-	server := grpc.NewServer(append(builtInOpts, opts...)...)
+	// Redirect gRPC log to slog.
+	grpclog.SetLoggerV2(internal.NewSlogger(slog.Default().Handler()))
 
-	return server
+	builtInOpts := []grpc.ServerOption{grpc.WaitForHandlers(true)}
+	if internal.IsSamplingHandler(slog.Default().Handler()) {
+		builtInOpts = append(builtInOpts,
+			grpc.ChainUnaryInterceptor(internal.BufferUnaryInterceptor),
+			grpc.ChainStreamInterceptor(internal.BufferStreamInterceptor),
+		)
+	}
+	// Add recovery interceptors after buffer interceptors so the info logs in the same session
+	// can be emitted for trouble shooting.
+	builtInOpts = append(builtInOpts,
+		grpc.ChainUnaryInterceptor(internal.RecoveryUnaryInterceptor(slog.Default().Handler())),
+		grpc.ChainStreamInterceptor(internal.RecoveryStreamInterceptor(slog.Default().Handler())),
+	)
+	builtInOpts = append(builtInOpts, opts...)
+
+	return grpc.NewServer(builtInOpts...)
 }
 
 // Run wraps start/stop of the gRPC server in a single run function
@@ -56,7 +71,7 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 
 	// Register config service if necessary.
 	if option.configs != nil {
-		pb.RegisterConfigServiceServer(server, &ConfigServiceServer{configs: option.configs})
+		pb.RegisterConfigServiceServer(server, internal.NewConfigServiceServer(option.configs))
 	}
 	// Register reflection service if necessary.
 	if _, exist := server.GetServiceInfo()[grpc_reflection_v1.ServerReflection_ServiceDesc.ServiceName]; !exist {

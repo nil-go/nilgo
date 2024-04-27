@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package log
+package internal
 
 import (
 	"context"
@@ -49,7 +49,7 @@ type serverStream struct {
 
 func (s serverStream) Context() context.Context { return s.ctx }
 
-func isSamplingHandler(handler slog.Handler) bool {
+func IsSamplingHandler(handler slog.Handler) bool {
 	switch handler.(type) {
 	case sampling.Handler, *sampling.Handler:
 		return true
@@ -71,7 +71,7 @@ func isSamplingHandler(handler slog.Handler) bool {
 		if v := valueCopy.FieldByName(name); v.IsValid() {
 			v = reflect.NewAt(v.Type(), unsafe.Pointer(v.UnsafeAddr())).Elem()
 			if h, ok := v.Interface().(slog.Handler); ok {
-				return isSamplingHandler(h)
+				return IsSamplingHandler(h)
 			}
 		}
 	}

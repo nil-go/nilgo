@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package log_test
+package internal_test
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 
-	"github.com/nil-go/nilgo/grpc/log"
+	"github.com/nil-go/nilgo/grpc/internal"
 )
 
 func TestRecoveryUnaryInterceptor(t *testing.T) {
@@ -62,7 +62,7 @@ func TestRecoveryUnaryInterceptor(t *testing.T) {
 				},
 			})
 
-			resp, err := log.RecoveryUnaryInterceptor(handler)(context.Background(), nil, nil, testcase.handler)
+			resp, err := internal.RecoveryUnaryInterceptor(handler)(context.Background(), nil, nil, testcase.handler)
 			if testcase.err == "" {
 				require.NoError(t, err)
 				assert.Equal(t, "", resp)
@@ -119,7 +119,7 @@ func TestRecoveryStreamInterceptor(t *testing.T) {
 				},
 			})
 
-			err := log.RecoveryStreamInterceptor(handler)(nil, serverStream{}, nil, testcase.handler)
+			err := internal.RecoveryStreamInterceptor(handler)(nil, serverStream{}, nil, testcase.handler)
 			if testcase.err == "" {
 				require.NoError(t, err)
 			} else {

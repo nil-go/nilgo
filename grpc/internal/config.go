@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package grpc
+package internal
 
 import (
 	"context"
@@ -17,6 +17,11 @@ type ConfigServiceServer struct {
 	pb.UnimplementedConfigServiceServer
 
 	configs []*konf.Config
+}
+
+// NewConfigServiceServer creates a new ConfigServiceServer with the provided configs.
+func NewConfigServiceServer(configs []*konf.Config) *ConfigServiceServer {
+	return &ConfigServiceServer{configs: configs}
 }
 
 func (c ConfigServiceServer) Explain(_ context.Context, request *pb.ExplainRequest) (*pb.ExplainResponse, error) {
