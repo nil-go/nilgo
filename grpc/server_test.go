@@ -15,11 +15,6 @@ import (
 	"github.com/nil-go/sloth/sampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/metricdata"
-	"go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
@@ -36,8 +31,6 @@ import (
 func TestRun(t *testing.T) {
 	buf := new(strings.Builder)
 
-	spanRecorder := tracetest.NewSpanRecorder()
-	metricReader := metric.NewManualReader()
 	testcases := []struct {
 		description string
 		server      func() *grpc.Server
@@ -77,7 +70,7 @@ func TestRun(t *testing.T) {
 		{
 			description: "default config service",
 			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.WithConfigService())
+				return ngrpc.NewServer(ngrpc.ConfigService())
 			},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
@@ -89,7 +82,7 @@ func TestRun(t *testing.T) {
 		{
 			description: "config service",
 			server: func() *grpc.Server {
-				return ngrpc.NewServer(ngrpc.WithConfigService(konf.New(), konf.New()))
+				return ngrpc.NewServer(ngrpc.ConfigService(konf.New(), konf.New()))
 			},
 			check: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
@@ -110,7 +103,7 @@ func TestRun(t *testing.T) {
 						return attr
 					},
 				})
-				server := ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				server := ngrpc.NewServer(ngrpc.LogHandler(handler))
 				grpc_testing.RegisterTestServiceServer(server, panicServer{interop.NewTestServer()})
 
 				return server
@@ -123,31 +116,6 @@ func TestRun(t *testing.T) {
 				assert.Equal(t, `level=ERROR msg="Panic Recovered" error="unimplemented panic"
 `, buf.String())
 				buf.Reset()
-			},
-		},
-		{
-			description: "with telemetry",
-			server: func() *grpc.Server {
-				tp := trace.NewTracerProvider(trace.WithSpanProcessor(spanRecorder))
-				mp := metric.NewMeterProvider(metric.WithReader(metricReader))
-
-				return ngrpc.NewServer(
-					ngrpc.WithTelemetry(otelgrpc.WithTracerProvider(tp), otelgrpc.WithMeterProvider(mp)),
-				)
-			},
-			check: func(*grpc.ClientConn) {
-				spans := spanRecorder.Ended()
-				assert.Len(t, spans, 1)
-				assert.Equal(t, "grpc.health.v1.Health/Check", spans[0].Name())
-				rm := metricdata.ResourceMetrics{}
-				err := metricReader.Collect(context.Background(), &rm)
-				require.NoError(t, err)
-				assert.Len(t, rm.ScopeMetrics, 1)
-				metrics := rm.ScopeMetrics[0].Metrics
-				assert.Len(t, metrics, 5)
-				for _, m := range metrics {
-					assert.True(t, strings.HasPrefix(m.Name, "rpc.server."))
-				}
 			},
 		},
 		{
@@ -165,7 +133,7 @@ func TestRun(t *testing.T) {
 				})
 				handler = sampling.New(handler, func(context.Context) bool { return false })
 
-				return ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				return ngrpc.NewServer(ngrpc.LogHandler(handler))
 			},
 			check: func(*grpc.ClientConn) {
 				assert.Empty(t, buf)
@@ -186,7 +154,7 @@ func TestRun(t *testing.T) {
 					},
 				})
 
-				return ngrpc.NewServer(ngrpc.WithLogHandler(handler))
+				return ngrpc.NewServer(ngrpc.LogHandler(handler))
 			},
 			check: func(*grpc.ClientConn) {
 				assert.NotEmpty(t, buf)
