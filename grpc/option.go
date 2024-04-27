@@ -8,22 +8,8 @@ import (
 	"log/slog"
 
 	"github.com/nil-go/konf"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
-
-// WithTelemetry enables trace and metrics instruments on the gRPC server.
-func WithTelemetry(opts ...otelgrpc.Option) grpc.ServerOption {
-	return serverOptionFunc{
-		fn: func(options *serverOptions) {
-			if options.otelOpts == nil {
-				options.otelOpts = []otelgrpc.Option{}
-			}
-
-			options.otelOpts = append(options.otelOpts, opts...)
-		},
-	}
-}
 
 // WithLogHandler provides the slog.Handler for gRPC logs.
 //
@@ -60,7 +46,6 @@ type (
 	serverOptions struct {
 		handler  slog.Handler
 		configs  []*konf.Config
-		otelOpts []otelgrpc.Option
 		grpcOpts []grpc.ServerOption
 	}
 )

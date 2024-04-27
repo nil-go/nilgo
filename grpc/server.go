@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -40,9 +39,6 @@ func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 
 	builtInOpts := log.ServerOptions(option.handler)
 	builtInOpts = append(builtInOpts, grpc.WaitForHandlers(true))
-	if option.otelOpts != nil {
-		builtInOpts = append(builtInOpts, grpc.StatsHandler(otelgrpc.NewServerHandler(option.otelOpts...)))
-	}
 	server := grpc.NewServer(append(builtInOpts, option.grpcOpts...)...)
 	if option.configs != nil {
 		pb.RegisterConfigServiceServer(server, &ConfigServiceServer{configs: option.configs})

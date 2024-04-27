@@ -6,7 +6,6 @@ package grpc
 import (
 	_ "unsafe" // For go:linkname
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -19,12 +18,4 @@ var addGlobalDialOptions any //nolint:gochecknoglobals // func(opt ...DialOption
 // since it is using internal package from grpc.
 func WithDialOption(opts ...grpc.DialOption) {
 	addGlobalDialOptions.(func(opt ...grpc.DialOption))(opts...) //nolint:forcetypeassert
-}
-
-// WithClientTelemetry enables trace and metrics instruments on all gRPC clients.
-//
-// CAUTION: This function may break in new version of `google.golang.org/grpc`
-// since it is using internal package from grpc.
-func WithClientTelemetry(opts ...otelgrpc.Option) {
-	WithDialOption(grpc.WithStatsHandler(otelgrpc.NewClientHandler(opts...)))
 }
