@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package http_test
+package internal_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	nhttp "github.com/nil-go/nilgo/http"
+	"github.com/nil-go/nilgo/http/internal"
 	"github.com/nil-go/nilgo/http/internal/assert"
 )
 
@@ -41,7 +41,7 @@ func TestRegisterUnixProtocol(t *testing.T) {
 	}()
 	time.Sleep(time.Second) // Wait for server to start.
 
-	nhttp.RegisterUnixProtocol(http.DefaultTransport.(*http.Transport))
+	internal.RegisterUnixProtocol(http.DefaultTransport.(*http.Transport))
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix:"+endpoint+"/?query=val", nil)
 	assert.NoError(t, err)
 	resp, err := http.DefaultClient.Do(request)

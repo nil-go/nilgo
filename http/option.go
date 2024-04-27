@@ -4,11 +4,30 @@
 package http
 
 import (
-	"log/slog"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/nil-go/konf"
 )
+
+// WithAddress provides the address listened by the HTTP server.
+// It should be either tcp address like `:8080` or unix socket address like `unix:nilgo.sock`.
+//
+// By default, it listens on `localhost:8080`  or `:${PORT}` if the environment variable exists.
+func WithAddress(addresses ...string) Option {
+	return func(options *options) {
+		options.addresses = slices.Grow(options.addresses, len(addresses))
+		for _, address := range addresses {
+			network := "tcp"
+			if strings.HasPrefix(address, "unix:") {
+				network = "unix"
+				address = strings.TrimPrefix(address[5:], "//")
+			}
+			options.addresses = append(options.addresses, socket{network: network, address: address})
+		}
+	}
+}
 
 // WithTimeout provides the duration that timeout http request.
 //
@@ -20,21 +39,10 @@ func WithTimeout(timeout time.Duration) Option {
 	}
 }
 
-// WithLogHandler provides the slog.Handler for HTTP server logs.
-//
-// By default it uses handler from slog.Default().
-func WithLogHandler(handler slog.Handler) Option {
-	return func(options *options) {
-		if handler != nil {
-			options.handler = handler
-		}
-	}
-}
-
-// ConfigService registers the endpoint `_config/{path}` for config explanation.
+// WithConfigService registers the endpoint `_config/{path}` for config explanation.
 //
 // It uses the global konf.Config if the configs are not provided.
-func ConfigService(configs ...*konf.Config) Option {
+func WithConfigService(configs ...*konf.Config) Option {
 	return func(options *options) {
 		if options.configs == nil {
 			options.configs = []*konf.Config{}
@@ -47,8 +55,12 @@ type (
 	// Option configures the http server.
 	Option  func(*options)
 	options struct {
-		timeout time.Duration
-		handler slog.Handler
-		configs []*konf.Config
+		addresses []socket
+		timeout   time.Duration
+		configs   []*konf.Config
+	}
+	socket struct {
+		network string
+		address string
 	}
 )

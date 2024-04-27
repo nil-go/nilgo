@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package http_test
+package internal_test
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	nhttp "github.com/nil-go/nilgo/http"
+	"github.com/nil-go/nilgo/http/internal"
 	"github.com/nil-go/nilgo/http/internal/assert"
 )
 
@@ -59,7 +59,7 @@ func TestRecoveryInterceptor(t *testing.T) {
 
 			writer := httptest.NewRecorder()
 			request := httptest.NewRequest(http.MethodGet, "/", nil)
-			nhttp.RecoveryInterceptor(http.HandlerFunc(testcase.handler), handler).ServeHTTP(writer, request)
+			internal.RecoveryInterceptor(http.HandlerFunc(testcase.handler), handler).ServeHTTP(writer, request)
 
 			assert.Equal(t, testcase.code, writer.Code)
 			pwd, _ := os.Getwd()
