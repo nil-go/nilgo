@@ -1,18 +1,20 @@
-module github.com/nil-go/nilgo/examples/grpc
+module github.com/nil-go/nilgo/examples/http
 
-go 1.21
+go 1.22
+
+toolchain go1.22.2
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
 	github.com/nil-go/nilgo v0.0.0
 	github.com/nil-go/nilgo/gcp v0.0.0
-	github.com/nil-go/nilgo/grpc v0.0.0
+	github.com/nil-go/nilgo/http v0.0.0
 )
 
 replace (
 	github.com/nil-go/nilgo => ./../..
 	github.com/nil-go/nilgo/gcp => ./../../gcp
-	github.com/nil-go/nilgo/grpc => ./../../grpc
+	github.com/nil-go/nilgo/http => ./../../http
 )
 
 require (

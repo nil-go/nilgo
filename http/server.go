@@ -108,10 +108,10 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 		go func() {
 			defer waitGroup.Done()
 
+			<-ctx.Done()
 			if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
 				cancel(fmt.Errorf("shutdown HTTP Server: %w", err))
 			}
-
 			slog.LogAttrs(ctx, slog.LevelInfo, "HTTP Server is stopped.")
 		}()
 		waitGroup.Wait()
