@@ -20,8 +20,8 @@ func WithAddress(addresses ...string) Option {
 		options.addresses = slices.Grow(options.addresses, len(addresses))
 		for _, address := range addresses {
 			network := "tcp"
-			if strings.HasPrefix(address, "unix:") {
-				network = "unix"
+			if strings.HasPrefix(address, unix+":") {
+				network = unix
 				address = strings.TrimPrefix(address[5:], "//")
 			}
 			options.addresses = append(options.addresses, socket{network: network, address: address})

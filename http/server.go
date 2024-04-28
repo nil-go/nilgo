@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 
 	"github.com/nil-go/nilgo/http/internal"
 )
+
+const unix = "unix"
 
 // Run wraps start/stop of the HTTP/1 and HTTP/2 clear text server in a single run function
 // with listening on multiple tcp and unix socket address.
@@ -82,12 +85,17 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(len(option.addresses) + 1)
+		if slices.ContainsFunc(option.addresses, func(addr socket) bool { return addr.network == unix }) {
+			if transport, ok := http.DefaultTransport.(*http.Transport); ok {
+				internal.RegisterUnixProtocol(transport)
+			}
+		}
 		for _, addr := range option.addresses {
 			addr := addr
 			go func() {
 				defer waitGroup.Done()
 
-				if addr.network == "unix" {
+				if addr.network == unix {
 					if err := os.RemoveAll(addr.address); err != nil {
 						slog.LogAttrs(ctx, slog.LevelWarn, "Could not delete unix socket file.", slog.Any("error", err))
 					}
