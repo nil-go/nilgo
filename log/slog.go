@@ -46,21 +46,23 @@ func New(opts ...Option) *slog.Logger {
 		return slog.Default()
 	}
 
-	var traceOpt []otel.Option
+	var handler slog.Handler = rate.New(option.handler)
+
 	if option.asTraceEvent {
 		// If the logger is configured to log as trace event, it disables sampling.
 		// However, sampling handler still can buffer and logs if there is a error log,
 		// or there is no valid trace context.
-		option.sampler = func(ctx context.Context) bool { return !trace.SpanContextFromContext(ctx).IsValid() }
-		traceOpt = append(traceOpt, otel.WithRecordEvent(true))
+		handler = sampling.New(handler, func(ctx context.Context) bool {
+			return !trace.SpanContextFromContext(ctx).IsValid()
+		})
+		handler = otel.New(handler, otel.WithRecordEvent(true))
+
+		return slog.New(handler)
 	}
 
-	var handler slog.Handler
-	handler = rate.New(option.handler)
 	if option.sampler != nil {
 		handler = sampling.New(handler, option.sampler)
 	}
-	handler = otel.New(handler, traceOpt...)
 
 	return slog.New(handler)
 }
