@@ -24,7 +24,7 @@ import (
 
 // NewServer creates a new gRPC server with the given options.
 //
-// It wraps grpc.NewServer with built-in interceptors, e.g recovery, log buffering, and statsHandler.
+// It wraps grpc.NewServer with built-in interceptors, e.g recovery, log buffering.
 func NewServer(opts ...grpc.ServerOption) *grpc.Server {
 	handler := slog.Default().Handler()
 	builtInOpts := []grpc.ServerOption{grpc.WaitForHandlers(true)}

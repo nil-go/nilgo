@@ -1,8 +1,6 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-//go:build !race
-
 package grpc_test
 
 import (
@@ -26,11 +24,13 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	t.Parallel()
+
 	testcases := []struct {
 		description string
 		server      func() *grpc.Server
 		opts        []ngrpc.Option
-		check       func(conn *grpc.ClientConn)
+		assertion   func(*grpc.ClientConn)
 	}{
 		{
 			description: "nil server",
@@ -54,7 +54,7 @@ func TestRun(t *testing.T) {
 
 				return server
 			},
-			check: func(conn *grpc.ClientConn) {
+			assertion: func(conn *grpc.ClientConn) {
 				ctx := context.Background()
 
 				client := grpc_testing.NewTestServiceClient(conn)
@@ -67,7 +67,7 @@ func TestRun(t *testing.T) {
 			description: "default config service",
 			server:      func() *grpc.Server { return ngrpc.NewServer() },
 			opts:        []ngrpc.Option{ngrpc.WithConfigService()},
-			check: func(conn *grpc.ClientConn) {
+			assertion: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
 				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
 				require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestRun(t *testing.T) {
 			description: "config service",
 			server:      func() *grpc.Server { return ngrpc.NewServer() },
 			opts:        []ngrpc.Option{ngrpc.WithConfigService(konf.New(), konf.New())},
-			check: func(conn *grpc.ClientConn) {
+			assertion: func(conn *grpc.ClientConn) {
 				client := pb.NewConfigServiceClient(conn)
 				resp, err := client.Explain(context.Background(), &pb.ExplainRequest{Path: "user"})
 				require.NoError(t, err)
@@ -93,27 +93,11 @@ func TestRun(t *testing.T) {
 
 				return server
 			},
-			check: func(conn *grpc.ClientConn) {
+			assertion: func(conn *grpc.ClientConn) {
 				client := grpc_testing.NewTestServiceClient(conn)
 				resp, err := client.UnimplementedCall(context.Background(), &grpc_testing.Empty{})
 				require.EqualError(t, err, "rpc error: code = Internal desc = ")
 				assert.Nil(t, resp)
-			},
-		},
-		{
-			description: "sampling handler",
-			server: func() *grpc.Server {
-				t.Setenv("GRPC_GO_LOG_SEVERITY_LEVEL", "info")
-
-				return ngrpc.NewServer()
-			},
-		},
-		{
-			description: "slog handler",
-			server: func() *grpc.Server {
-				t.Setenv("GRPC_GO_LOG_SEVERITY_LEVEL", "info")
-
-				return ngrpc.NewServer()
 			},
 		},
 	}
@@ -122,6 +106,8 @@ func TestRun(t *testing.T) {
 		testcase := testcase
 
 		t.Run(testcase.description, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -148,8 +134,8 @@ func TestRun(t *testing.T) {
 			require.NoError(t, err)
 			require.NoError(t, stream.CloseSend())
 
-			if testcase.check != nil {
-				testcase.check(conn)
+			if testcase.assertion != nil {
+				testcase.assertion(conn)
 			}
 		})
 	}

@@ -13,3 +13,4 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Support gRPC server (#15).
 - Add nilgo.Run (#22).
 - Support GCP Cloud Run (#24).
+- Support HTTP server (#26).
