@@ -12,7 +12,7 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
-        module: [ '', 'gcp', 'grpc' ]
+        module: [ '', 'gcp', 'grpc', 'http' ]
     name: Coverage
     runs-on: ubuntu-latest
     steps:

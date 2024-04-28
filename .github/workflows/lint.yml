@@ -11,7 +11,11 @@ jobs:
   lint:
     strategy:
       matrix:
-        module: [ '', 'gcp', 'grpc', 'examples/grpc' ]
+        module: [
+          '', 'gcp',
+          'grpc', 'examples/grpc',
+          'http', 'examples/http'
+        ]
     name: Lint
     runs-on: ubuntu-latest
     steps:
