@@ -42,13 +42,14 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 		}
 	}
 	if server.ReadTimeout == 0 {
-		server.ReadTimeout = option.timeout
+		// It has to be longer than the timeout of the handler.
+		server.ReadTimeout = option.timeout * 2 //nolint:gomnd
 	}
 	if server.WriteTimeout == 0 {
 		server.WriteTimeout = server.ReadTimeout
 	}
 	if server.IdleTimeout == 0 {
-		server.IdleTimeout = option.timeout * 3 //nolint:gomnd
+		server.IdleTimeout = server.ReadTimeout * 3 //nolint:gomnd
 	}
 
 	if len(option.addresses) == 0 {
@@ -63,20 +64,18 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 	if handler == nil {
 		handler = http.DefaultServeMux
 	}
-	if option.timeout > 0 {
-		handler = http.TimeoutHandler(handler, option.timeout, "request timeout")
-	}
-	logHandler := slog.Default().Handler()
-	handler = internal.RecoveryInterceptor(handler, logHandler)
-	if internal.IsSamplingHandler(logHandler) {
-		handler = internal.BufferInterceptor(handler)
-	}
 	if option.configs != nil {
 		mux := http.NewServeMux()
 		mux.Handle("/", handler)
 		mux.HandleFunc("GET /_config/{path}", config(option))
 		handler = mux
 	}
+	logHandler := slog.Default().Handler()
+	handler = internal.RecoveryInterceptor(handler, logHandler)
+	if internal.IsSamplingHandler(logHandler) {
+		handler = internal.BufferInterceptor(handler)
+	}
+	handler = http.TimeoutHandler(handler, option.timeout, "request timeout")
 	server.Handler = h2c.NewHandler(handler, &http2.Server{})
 
 	return func(ctx context.Context) error {

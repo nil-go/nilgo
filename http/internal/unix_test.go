@@ -30,8 +30,10 @@ func TestRegisterUnixProtocol(t *testing.T) {
 
 	go func() {
 		server := http.Server{
-			Addr:        endpoint,
-			Handler:     http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}),
+			Addr: endpoint,
+			Handler: http.HandlerFunc(func(_ http.ResponseWriter, request *http.Request) {
+				assert.Equal(t, "/", request.URL.Path)
+			}),
 			ReadTimeout: time.Second,
 		}
 		listener, serr := net.Listen("unix", endpoint)

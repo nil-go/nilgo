@@ -64,6 +64,7 @@ func (u unixTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.URL.Scheme = strings.Replace(req.URL.Scheme, "unix", "http", 1)
 		if req.URL.Host == "" && req.URL.Opaque != "" {
 			req.URL.Host, req.URL.Path, _ = strings.Cut(req.URL.Opaque, "/")
+			req.URL.Path = "/" + req.URL.Path
 			req.URL.Opaque = ""
 		}
 	}
