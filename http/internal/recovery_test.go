@@ -58,8 +58,8 @@ func TestRecoveryInterceptor(t *testing.T) {
 			})
 
 			writer := httptest.NewRecorder()
-			request := httptest.NewRequest(http.MethodGet, "/", nil)
-			internal.RecoveryInterceptor(http.HandlerFunc(testcase.handler), handler).ServeHTTP(writer, request)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			internal.RecoveryInterceptor(http.HandlerFunc(testcase.handler), handler).ServeHTTP(writer, req)
 
 			assert.Equal(t, testcase.code, writer.Code)
 			pwd, _ := os.Getwd()

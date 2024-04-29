@@ -31,9 +31,9 @@ func TestRun(t *testing.T) {
 			description: "nil server",
 			server:      func() *http.Server { return nil },
 			assertion: func(endpoint string) {
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
 				assert.NoError(t, err)
-				resp, err := http.DefaultClient.Do(request)
+				resp, err := http.DefaultClient.Do(req)
 				assert.NoError(t, err)
 				defer func() { _ = resp.Body.Close() }()
 				assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -49,9 +49,9 @@ func TestRun(t *testing.T) {
 				}
 			},
 			assertion: func(endpoint string) {
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
 				assert.NoError(t, err)
-				resp, err := http.DefaultClient.Do(request)
+				resp, err := http.DefaultClient.Do(req)
 				assert.NoError(t, err)
 				assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 				bytes, err := io.ReadAll(resp.Body)
@@ -79,9 +79,9 @@ func TestRun(t *testing.T) {
 				nhttp.WithTimeout(time.Second),
 			},
 			assertion: func(endpoint string) {
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint, nil)
 				assert.NoError(t, err)
-				resp, err := http.DefaultClient.Do(request)
+				resp, err := http.DefaultClient.Do(req)
 				assert.NoError(t, err)
 				defer func() { _ = resp.Body.Close() }()
 				assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
@@ -96,9 +96,9 @@ func TestRun(t *testing.T) {
 				nhttp.WithConfigService(),
 			},
 			assertion: func(endpoint string) {
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint+"/_config/_not_found", nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, endpoint+"/_config/_not_found", nil)
 				assert.NoError(t, err)
-				resp, err := http.DefaultClient.Do(request)
+				resp, err := http.DefaultClient.Do(req)
 				assert.NoError(t, err)
 				defer func() { _ = resp.Body.Close() }()
 				assert.Equal(t, http.StatusOK, resp.StatusCode)
