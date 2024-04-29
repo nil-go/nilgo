@@ -65,8 +65,8 @@ level=ERROR msg=error
 			})
 
 			writer := httptest.NewRecorder()
-			request := httptest.NewRequest(http.MethodGet, "/", nil)
-			internal.BufferInterceptor(handler).ServeHTTP(writer, request)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			internal.BufferInterceptor(handler).ServeHTTP(writer, req)
 
 			pwd, _ := os.Getwd()
 			assert.Equal(t, testcase.expected, strings.ReplaceAll(buf.String(), pwd, ""))

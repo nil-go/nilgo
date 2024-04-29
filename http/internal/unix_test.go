@@ -44,9 +44,9 @@ func TestRegisterUnixProtocol(t *testing.T) {
 	time.Sleep(time.Second) // Wait for server to start.
 
 	internal.RegisterUnixProtocol(http.DefaultTransport.(*http.Transport))
-	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix:"+endpoint+"/?query=val", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix:"+endpoint+"/?query=val", nil)
 	assert.NoError(t, err)
-	resp, err := http.DefaultClient.Do(request)
+	resp, err := http.DefaultClient.Do(req)
 	defer func() { _ = resp.Body.Close() }()
 	assert.NoError(t, err)
 }

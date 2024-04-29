@@ -33,9 +33,9 @@ func TestNewClient(t *testing.T) {
 				assert.Equal(t, 100, transport.MaxIdleConnsPerHost)
 				assert.Equal(t, 200*time.Millisecond, transport.TLSHandshakeTimeout)
 
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix://.test.sock", nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix://.test.sock", nil)
 				assert.NoError(t, err)
-				_, err = client.Do(request) //nolint:bodyclose
+				_, err = client.Do(req) //nolint:bodyclose
 				assert.EqualError(t, err, `Get "unix://.test.sock": unsupported protocol scheme "unix"`)
 			},
 		},
@@ -71,9 +71,9 @@ func TestNewClient(t *testing.T) {
 				nhttp.WithClientUnixSocket(),
 			},
 			assertion: func(client *http.Client) {
-				request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix://.test.sock", nil)
+				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix://.test.sock", nil)
 				assert.NoError(t, err)
-				_, err = client.Do(request) //nolint:bodyclose
+				_, err = client.Do(req) //nolint:bodyclose
 				assert.EqualError(t, err, `Get "http://.test.sock": dial unix .test.sock: connect: no such file or directory`)
 			},
 		},
