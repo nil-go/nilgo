@@ -107,7 +107,7 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 				}
 
 				slog.LogAttrs(ctx, slog.LevelInfo, fmt.Sprintf("HTTP Server listens on %s.", listener.Addr()))
-				if err := server.Serve(listener); err != nil {
+				if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					cancel(fmt.Errorf("start HTTP Server on %s: %w", listener.Addr(), err))
 				}
 			}()

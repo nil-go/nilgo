@@ -21,8 +21,11 @@ var configFS embed.FS
 
 func main() {
 	var opts []any
-	if metadata.OnGCE() {
+	switch {
+	case metadata.OnGCE():
 		opts = gcp.Options()
+	default:
+		opts = []any{nilgo.PProf}
 	}
 	opts = append(opts,
 		config.WithFS(configFS),
