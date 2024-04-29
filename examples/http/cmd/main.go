@@ -24,8 +24,6 @@ func main() {
 	switch {
 	case metadata.OnGCE():
 		opts, err := gcp.Options(
-			gcp.WithTrace(),
-			gcp.WithMetric(),
 			gcp.WithProfiler(),
 		)
 		if err != nil {
@@ -37,7 +35,10 @@ func main() {
 	}
 	args = append(args,
 		config.WithFS(configFS),
-		nhttp.Run(&http.Server{ReadTimeout: time.Second}),
+		nhttp.Run(
+			&http.Server{ReadTimeout: time.Second},
+			nhttp.WithConfigService(),
+		),
 	)
 
 	if err := nilgo.Run(args...); err != nil {

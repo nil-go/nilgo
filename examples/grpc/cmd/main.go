@@ -22,8 +22,6 @@ func main() {
 	switch {
 	case metadata.OnGCE():
 		opts, err := gcp.Options(
-			gcp.WithTrace(),
-			gcp.WithMetric(),
 			gcp.WithProfiler(),
 		)
 		if err != nil {
@@ -35,7 +33,10 @@ func main() {
 	}
 	args = append(args,
 		config.WithFS(configFS),
-		ngrpc.Run(ngrpc.NewServer()),
+		ngrpc.Run(
+			ngrpc.NewServer(),
+			ngrpc.WithConfigService(),
+		),
 	)
 
 	if err := nilgo.Run(args...); err != nil {
