@@ -27,13 +27,11 @@
 package log
 
 import (
-	"context"
 	"log/slog"
 
 	"github.com/nil-go/sloth/otel"
 	"github.com/nil-go/sloth/rate"
 	"github.com/nil-go/sloth/sampling"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // New creates a new slog.Logger with the given Option(s).
@@ -47,22 +45,10 @@ func New(opts ...Option) *slog.Logger {
 	}
 
 	var handler slog.Handler = rate.New(option.handler)
-
-	if option.asTraceEvent {
-		// If the logger is configured to log as trace event, it disables sampling.
-		// However, sampling handler still can buffer and logs if there is a error log,
-		// or there is no valid trace context.
-		handler = sampling.New(handler, func(ctx context.Context) bool {
-			return !trace.SpanContextFromContext(ctx).IsValid()
-		})
-		handler = otel.New(handler, otel.WithRecordEvent(true))
-
-		return slog.New(handler)
-	}
-
 	if option.sampler != nil {
 		handler = sampling.New(handler, option.sampler)
 	}
+	handler = otel.New(handler)
 
 	return slog.New(handler)
 }

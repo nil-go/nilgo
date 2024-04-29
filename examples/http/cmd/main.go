@@ -5,10 +5,12 @@ package main
 
 import (
 	"embed"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
@@ -24,6 +26,8 @@ func main() {
 	switch {
 	case metadata.OnGCE():
 		opts, err := gcp.Options(
+			gcp.WithTrace(),
+			gcp.WithMetric(),
 			gcp.WithProfiler(),
 		)
 		if err != nil {
@@ -33,10 +37,22 @@ func main() {
 	default:
 		args = append(args, nilgo.PProf)
 	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		slog.InfoContext(r.Context(), "hello world")
+		if _, err := w.Write([]byte("Hello, World!")); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+	server := &http.Server{
+		Handler:     otelhttp.NewHandler(mux, "nilgo example"),
+		ReadTimeout: time.Second,
+	}
 	args = append(args,
 		config.WithFS(configFS),
 		nhttp.Run(
-			&http.Server{ReadTimeout: time.Second},
+			server,
 			nhttp.WithConfigService(),
 		),
 	)

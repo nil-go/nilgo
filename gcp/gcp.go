@@ -25,7 +25,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 // Options provides the [nilgo.Run] options for application runs on GCP.
@@ -49,7 +48,10 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 	}
 
 	appOpts := []any{
-		gcp.New(append(option.logOpts, gcp.WithErrorReporting(option.service, option.version))...),
+		gcp.New(append(option.logOpts,
+			gcp.WithTrace(option.project),
+			gcp.WithErrorReporting(option.service, option.version),
+		)...),
 	}
 	if option.project == "" {
 		return appOpts, nil
@@ -62,18 +64,7 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 		return appOpts, nil
 	}
 
-	res, err := resource.Merge(
-		resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName(option.service),
-			semconv.ServiceVersion(option.version),
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("mergee otel resource: %w", err)
-	}
-
+	res := resource.Default()
 	ctx := context.Background()
 	if option.traceOpts != nil {
 		exporter, err := otlptracegrpc.New(ctx, option.traceOpts...)
@@ -84,6 +75,7 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 			trace.NewTracerProvider(
 				trace.WithBatcher(exporter),
 				trace.WithResource(res),
+				trace.WithSampler(trace.ParentBased(trace.NeverSample())),
 			),
 		)
 	}

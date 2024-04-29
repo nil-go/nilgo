@@ -9,6 +9,7 @@ require (
 	github.com/nil-go/nilgo v0.0.0
 	github.com/nil-go/nilgo/gcp v0.0.0
 	github.com/nil-go/nilgo/http v0.0.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0
 )
 
 replace (
@@ -23,6 +24,7 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/profiler v0.4.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
