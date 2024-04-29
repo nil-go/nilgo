@@ -18,19 +18,27 @@ import (
 var configFS embed.FS
 
 func main() {
-	var opts []any
+	var args []any
 	switch {
 	case metadata.OnGCE():
-		opts = gcp.Options()
+		opts, err := gcp.Options(
+			gcp.WithTrace(),
+			gcp.WithMetric(),
+			gcp.WithProfiler(),
+		)
+		if err != nil {
+			panic(err)
+		}
+		args = append(args, opts...)
 	default:
-		opts = []any{nilgo.PProf}
+		args = append(args, nilgo.PProf)
 	}
-	opts = append(opts,
+	args = append(args,
 		config.WithFS(configFS),
 		ngrpc.Run(ngrpc.NewServer()),
 	)
 
-	if err := nilgo.Run(opts...); err != nil {
+	if err := nilgo.Run(args...); err != nil {
 		panic(err)
 	}
 }
