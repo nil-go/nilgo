@@ -80,17 +80,11 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 		if err != nil {
 			return nil, fmt.Errorf("create otlp trace exporter: %w", err)
 		}
-		provider := trace.NewTracerProvider(
-			trace.WithBatcher(exporter),
-			trace.WithResource(res),
-		)
 		appOpts = append(appOpts,
-			provider,
-			func(ctx context.Context) error {
-				<-ctx.Done()
-
-				return provider.Shutdown(context.WithoutCancel(ctx))
-			},
+			trace.NewTracerProvider(
+				trace.WithBatcher(exporter),
+				trace.WithResource(res),
+			),
 		)
 	}
 	if option.metricOpts != nil {
@@ -99,17 +93,11 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 			return nil, fmt.Errorf("create otlp metric exporter: %w", err)
 		}
 
-		provider := metric.NewMeterProvider(
-			metric.WithReader(metric.NewPeriodicReader(exporter)),
-			metric.WithResource(res),
-		)
 		appOpts = append(appOpts,
-			provider,
-			func(ctx context.Context) error {
-				<-ctx.Done()
-
-				return provider.Shutdown(context.WithoutCancel(ctx))
-			},
+			metric.NewMeterProvider(
+				metric.WithReader(metric.NewPeriodicReader(exporter)),
+				metric.WithResource(res),
+			),
 		)
 	}
 

@@ -49,6 +49,22 @@ func TestRunner_Run(t *testing.T) {
 			ran:         true,
 		},
 		{
+			description: "with post-run",
+			runner: run.New(run.WithPostRun(func(context.Context) error {
+				return nil
+			})),
+			ran: true,
+		},
+		{
+			description: "post-run error",
+			runner: run.New(run.WithPostRun(func(context.Context) error {
+				return errors.New("post-run error")
+			}),
+			),
+			err: "post-run error",
+			ran: true,
+		},
+		{
 			description: "with start gate",
 			runner:      run.New(run.WithStartGate(func(context.Context) error { return nil })),
 			ran:         true,

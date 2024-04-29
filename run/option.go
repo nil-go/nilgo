@@ -15,6 +15,13 @@ func WithPreRun(runs ...func(context.Context) error) Option {
 	}
 }
 
+// WithPostRun provides runs to execute after the main runs provided in Runner.Run.
+func WithPostRun(runs ...func(context.Context) error) Option {
+	return func(options *options) {
+		options.postRuns = append(options.postRuns, runs...)
+	}
+}
+
 // WithStartGate provides gates to block the start of main runs provided in Runner.Run,
 // until all start gates returns without error.
 //

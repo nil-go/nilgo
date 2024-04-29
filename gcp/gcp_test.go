@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/nil-go/nilgo/gcp"
 )
@@ -83,12 +83,10 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Len(t, opts, 3)
+				assert.Len(t, opts, 2)
 				_, ok := opts[0].(slog.Handler)
 				assert.True(t, ok)
-				_, ok = opts[1].(trace.TracerProvider)
-				assert.True(t, ok)
-				_, ok = opts[2].(func(context.Context) error)
+				_, ok = opts[1].(*trace.TracerProvider)
 				assert.True(t, ok)
 			},
 		},
@@ -101,12 +99,10 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Len(t, opts, 3)
+				assert.Len(t, opts, 2)
 				_, ok := opts[0].(slog.Handler)
 				assert.True(t, ok)
 				_, ok = opts[1].(*metric.MeterProvider)
-				assert.True(t, ok)
-				_, ok = opts[2].(func(context.Context) error)
 				assert.True(t, ok)
 			},
 		},

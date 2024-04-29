@@ -16,6 +16,7 @@ import (
 // To create an Runner, use [New].
 type Runner struct {
 	preRuns    []func(context.Context) error
+	postRuns   []func(context.Context) error
 	startGates []func(context.Context) error
 	stopGates  []func(context.Context) error
 }
@@ -39,7 +40,7 @@ func New(opts ...Option) Runner {
 // The execution can be interrupted if any run returns non-nil error,
 // or it receives an OS signal syscall.SIGINT or syscall.SIGTERM.
 // It waits all run return unless it's forcefully terminated by OS.
-func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) error {
+func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) error { //nolint:funlen
 	allRuns := make([]func(context.Context) error, 0, len(r.preRuns)+1)
 	startGates := slices.Clone(r.startGates)
 	if len(r.preRuns) > 0 {
@@ -93,6 +94,13 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 			if err = Parallel(signalCtx, startGates...); err != nil {
 				return err
 			}
+			defer func() {
+				// Wait for all post-runs to finish.
+				e := Parallel(runCtx, r.postRuns...)
+				if err == nil {
+					err = e
+				}
+			}()
 
 			return Parallel(runCtx, runs...)
 		},
