@@ -48,8 +48,18 @@ func Run(args ...any) error { //nolint:cyclop
 			logOpts = append(logOpts, opt)
 		case trace.TracerProvider:
 			otel.SetTracerProvider(opt)
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
+			}
 		case metric.MeterProvider:
 			otel.SetMeterProvider(opt)
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
+			}
 		case run.Option:
 			runOpts = append(runOpts, opt)
 		case func(context.Context) error:
