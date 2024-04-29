@@ -5,6 +5,8 @@ package gcp
 
 import (
 	"github.com/nil-go/sloth/gcp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 )
 
 // WithProject provides the GCP project ID.
@@ -41,6 +43,26 @@ func WithLogOptions(opts gcp.Option) Option {
 	}
 }
 
+// WithTrace enables otlp trace provider with give otlptracegrpc.Option(s).
+func WithTrace(opts ...otlptracegrpc.Option) Option {
+	return func(options *options) {
+		if options.traceOpts == nil {
+			options.traceOpts = []otlptracegrpc.Option{}
+		}
+		options.traceOpts = append(options.traceOpts, opts...)
+	}
+}
+
+// WithMetric enables otlp metric provider with give otlpmetricgrpc.Option(s).
+func WithMetric(opts ...otlpmetricgrpc.Option) Option {
+	return func(options *options) {
+		if options.metricOpts == nil {
+			options.metricOpts = []otlpmetricgrpc.Option{}
+		}
+		options.metricOpts = append(options.metricOpts, opts...)
+	}
+}
+
 // WithOptions provides the function which returns multiple Option(s).
 // It's useful while the Option needs to read configuration from config,
 // since it defers the creation of Option(s) until the config is loaded.
@@ -60,7 +82,9 @@ type (
 		service string
 		version string
 
-		logOpts []gcp.Option
+		logOpts    []gcp.Option
+		metricOpts []otlpmetricgrpc.Option
+		traceOpts  []otlptracegrpc.Option
 		profilerOptions
 	}
 )

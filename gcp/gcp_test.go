@@ -10,6 +10,9 @@ import (
 
 	sgcp "github.com/nil-go/sloth/gcp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/nil-go/nilgo/gcp"
 )
@@ -72,6 +75,42 @@ func TestOptions(t *testing.T) {
 			},
 		},
 		{
+			description: "with trace",
+			opts: []gcp.Option{
+				gcp.WithProject("project"),
+				gcp.WithTrace(),
+			},
+			assertion: func(t *testing.T, opts []any) {
+				t.Helper()
+
+				assert.Len(t, opts, 3)
+				_, ok := opts[0].(slog.Handler)
+				assert.True(t, ok)
+				_, ok = opts[1].(trace.TracerProvider)
+				assert.True(t, ok)
+				_, ok = opts[2].(func(context.Context) error)
+				assert.True(t, ok)
+			},
+		},
+		{
+			description: "with metric",
+			opts: []gcp.Option{
+				gcp.WithProject("project"),
+				gcp.WithMetric(),
+			},
+			assertion: func(t *testing.T, opts []any) {
+				t.Helper()
+
+				assert.Len(t, opts, 3)
+				_, ok := opts[0].(slog.Handler)
+				assert.True(t, ok)
+				_, ok = opts[1].(*metric.MeterProvider)
+				assert.True(t, ok)
+				_, ok = opts[2].(func(context.Context) error)
+				assert.True(t, ok)
+			},
+		},
+		{
 			description: "without project",
 			opts: []gcp.Option{
 				gcp.WithLogOptions(sgcp.WithLevel(slog.LevelError)),
@@ -93,7 +132,9 @@ func TestOptions(t *testing.T) {
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
-			testcase.assertion(t, gcp.Options(testcase.opts...))
+			opts, err := gcp.Options(testcase.opts...)
+			require.NoError(t, err)
+			testcase.assertion(t, opts)
 		})
 	}
 }

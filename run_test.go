@@ -12,6 +12,8 @@ import (
 	"testing/fstest"
 
 	"github.com/nil-go/konf"
+	noopmetric "go.opentelemetry.io/otel/metric/noop"
+	nooptrace "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
@@ -38,6 +40,8 @@ func TestRun(t *testing.T) {
 		}),
 		log.WithSampler(func(context.Context) bool { return true }),
 		config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
+		nooptrace.NewTracerProvider(),
+		noopmetric.NewMeterProvider(),
 		run.WithPreRun(func(context.Context) error {
 			started = true
 

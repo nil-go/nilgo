@@ -14,10 +14,18 @@
 package gcp
 
 import (
+	"context"
+	"fmt"
 	"os"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/nil-go/sloth/gcp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 // Options provides the [nilgo.Run] options for application runs on GCP.
@@ -25,7 +33,7 @@ import (
 // By default, only logging and error reporting are configured.
 // Profiler need to enable explicitly
 // using corresponding Option(s).
-func Options(opts ...Option) []any {
+func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 	option := options{}
 	for _, opt := range opts {
 		opt(&option)
@@ -44,12 +52,66 @@ func Options(opts ...Option) []any {
 		gcp.New(append(option.logOpts, gcp.WithErrorReporting(option.service, option.version))...),
 	}
 	if option.project == "" {
-		return appOpts
+		return appOpts, nil
 	}
 
 	if runner := profile(&option); runner != nil {
 		appOpts = append(appOpts, runner)
 	}
+	if option.traceOpts == nil && option.metricOpts == nil {
+		return appOpts, nil
+	}
 
-	return appOpts
+	res, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName(option.service),
+			semconv.ServiceVersion(option.version),
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("mergee otel resource: %w", err)
+	}
+
+	ctx := context.Background()
+	if option.traceOpts != nil {
+		exporter, err := otlptracegrpc.New(ctx, option.traceOpts...)
+		if err != nil {
+			return nil, fmt.Errorf("create otlp trace exporter: %w", err)
+		}
+		provider := trace.NewTracerProvider(
+			trace.WithBatcher(exporter),
+			trace.WithResource(res),
+		)
+		appOpts = append(appOpts,
+			provider,
+			func(ctx context.Context) error {
+				<-ctx.Done()
+
+				return provider.Shutdown(context.WithoutCancel(ctx))
+			},
+		)
+	}
+	if option.metricOpts != nil {
+		exporter, err := otlpmetricgrpc.New(ctx, option.metricOpts...)
+		if err != nil {
+			return nil, fmt.Errorf("create otlp metric exporter: %w", err)
+		}
+
+		provider := metric.NewMeterProvider(
+			metric.WithReader(metric.NewPeriodicReader(exporter)),
+			metric.WithResource(res),
+		)
+		appOpts = append(appOpts,
+			provider,
+			func(ctx context.Context) error {
+				<-ctx.Done()
+
+				return provider.Shutdown(context.WithoutCancel(ctx))
+			},
+		)
+	}
+
+	return appOpts, nil
 }

@@ -14,3 +14,4 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add nilgo.Run (#22).
 - Support GCP Cloud Run (#24).
 - Support HTTP server (#26).
+- Support open telemetry (#27).

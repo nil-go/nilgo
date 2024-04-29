@@ -9,6 +9,9 @@ import (
 	"log/slog"
 
 	"github.com/nil-go/konf"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/log"
@@ -28,7 +31,7 @@ import (
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
-func Run(args ...any) error {
+func Run(args ...any) error { //nolint:cyclop
 	var (
 		configOpts []config.Option
 		logOpts    []log.Option
@@ -43,6 +46,10 @@ func Run(args ...any) error {
 			logOpts = append(logOpts, log.WithHandler(opt))
 		case log.Option:
 			logOpts = append(logOpts, opt)
+		case trace.TracerProvider:
+			otel.SetTracerProvider(opt)
+		case metric.MeterProvider:
+			otel.SetMeterProvider(opt)
 		case run.Option:
 			runOpts = append(runOpts, opt)
 		case func(context.Context) error:
