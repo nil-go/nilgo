@@ -47,7 +47,7 @@ func WithLogOptions(opts gcp.Option) Option {
 func WithTrace(opts ...otlptracegrpc.Option) Option {
 	return func(options *options) {
 		if options.traceOpts == nil {
-			options.traceOpts = []otlptracegrpc.Option{}
+			options.traceOpts = []otlptracegrpc.Option{otlptracegrpc.WithInsecure()}
 		}
 		options.traceOpts = append(options.traceOpts, opts...)
 	}
@@ -57,7 +57,7 @@ func WithTrace(opts ...otlptracegrpc.Option) Option {
 func WithMetric(opts ...otlpmetricgrpc.Option) Option {
 	return func(options *options) {
 		if options.metricOpts == nil {
-			options.metricOpts = []otlpmetricgrpc.Option{}
+			options.metricOpts = []otlpmetricgrpc.Option{otlpmetricgrpc.WithInsecure()}
 		}
 		options.metricOpts = append(options.metricOpts, opts...)
 	}

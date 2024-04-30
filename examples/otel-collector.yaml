@@ -1,0 +1,46 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+processors:
+  batch:
+    send_batch_max_size: 200
+    send_batch_size: 200
+    timeout: 5s
+
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 65
+    spike_limit_percentage: 20
+
+  resourcedetection:
+    detectors: [env, gcp]
+    timeout: 2s
+    override: false
+
+  resource:
+    attributes:
+      - key: service.instance.id
+        from_attribute: faas.id
+        action: upsert
+      - key: service.name
+        from_attribute: faas.name
+        action: upsert
+      - key: service.version
+        from_attribute: faas.version
+        action: upsert
+
+exporters:
+  googlecloud:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, memory_limiter, resourcedetection, resource]
+      exporters: [googlecloud]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, memory_limiter, resourcedetection, resource]
+      exporters: [googlecloud]

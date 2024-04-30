@@ -7,6 +7,8 @@ import (
 	"embed"
 
 	"cloud.google.com/go/compute/metadata"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
@@ -35,7 +37,10 @@ func main() {
 	}
 	args = append(args,
 		config.WithFS(configFS),
-		ngrpc.Run(ngrpc.NewServer()),
+		ngrpc.Run(
+			ngrpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler())),
+			ngrpc.WithConfigService(),
+		),
 	)
 
 	if err := nilgo.Run(args...); err != nil {

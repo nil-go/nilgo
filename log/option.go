@@ -26,21 +26,11 @@ func WithSampler(sampler func(context.Context) bool) Option {
 	}
 }
 
-// WithLogAsTraceEvent enables logging as trace event.
-//
-// It could significantly reduce the log volume then cost as trace is priced by number of span.
-func WithLogAsTraceEvent() Option {
-	return func(options *options) {
-		options.asTraceEvent = true
-	}
-}
-
 type (
 	// Option configures the logger with specific options.
 	Option  func(*options)
 	options struct {
-		handler      slog.Handler
-		sampler      func(context.Context) bool
-		asTraceEvent bool
+		handler slog.Handler
+		sampler func(context.Context) bool
 	}
 )

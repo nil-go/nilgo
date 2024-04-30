@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/nil-go/sloth/sampling"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/nil-go/nilgo/internal/assert"
 	"github.com/nil-go/nilgo/log"
@@ -56,20 +55,6 @@ func TestNew(t *testing.T) {
 			expected: `{"level":"INFO","msg":"info log"}
 {"level":"ERROR","msg":"error log"}
 `,
-		},
-		{
-			description: "with log as trace event",
-			opts: []log.Option{
-				log.WithLogAsTraceEvent(),
-			},
-			fn: func(ctx context.Context, logger *slog.Logger) {
-				ctx = trace.ContextWithSpanContext(ctx, trace.NewSpanContext(trace.SpanContextConfig{
-					TraceID:    [16]byte{75, 249, 47, 53, 119, 179, 77, 166, 163, 206, 146, 157, 14, 14, 71, 54},
-					SpanID:     [8]byte{0, 240, 103, 170, 11, 169, 2, 183},
-					TraceFlags: trace.TraceFlags(1),
-				}))
-				logger.InfoContext(ctx, "info log")
-			},
 		},
 	}
 

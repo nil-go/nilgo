@@ -11,6 +11,7 @@ import (
 	"github.com/nil-go/konf"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/nil-go/nilgo/config"
@@ -31,7 +32,7 @@ import (
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
-func Run(args ...any) error { //nolint:cyclop
+func Run(args ...any) error { //nolint:cyclop,funlen
 	var (
 		configOpts []config.Option
 		logOpts    []log.Option
@@ -48,11 +49,24 @@ func Run(args ...any) error { //nolint:cyclop
 			logOpts = append(logOpts, opt)
 		case trace.TracerProvider:
 			otel.SetTracerProvider(opt)
+			otel.SetTextMapPropagator(
+				propagation.NewCompositeTextMapPropagator(
+					propagation.TraceContext{},
+					propagation.Baggage{},
+				),
+			)
 			if provider, ok := opt.(interface {
 				Shutdown(ctx context.Context) error
 			}); ok {
 				runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
 			}
+			logOpts = append([]log.Option{
+				log.WithSampler(func(ctx context.Context) bool {
+					sc := trace.SpanContextFromContext(ctx)
+
+					return !sc.IsValid() || sc.IsSampled()
+				}),
+			}, logOpts...)
 		case metric.MeterProvider:
 			otel.SetMeterProvider(opt)
 			if provider, ok := opt.(interface {
