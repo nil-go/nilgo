@@ -46,7 +46,18 @@ func main() {
 		}
 	})
 	server := &http.Server{
-		Handler:     otelhttp.NewHandler(mux, "nilgo example"),
+		Handler: otelhttp.NewHandler(mux, "", otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+			if operation != "" {
+				return operation
+			}
+
+			method := r.Method
+			if method == "" {
+				method = "GET"
+			}
+
+			return method + " " + r.URL.Path
+		})),
 		ReadTimeout: time.Second,
 	}
 	args = append(args,
