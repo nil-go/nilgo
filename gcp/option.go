@@ -7,6 +7,8 @@ import (
 	"github.com/nil-go/sloth/gcp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // WithProject provides the GCP project ID.
@@ -47,7 +49,9 @@ func WithLogOptions(opts gcp.Option) Option {
 func WithTrace(opts ...otlptracegrpc.Option) Option {
 	return func(options *options) {
 		if options.traceOpts == nil {
-			options.traceOpts = []otlptracegrpc.Option{otlptracegrpc.WithInsecure()}
+			options.traceOpts = []otlptracegrpc.Option{
+				otlptracegrpc.WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+			}
 		}
 		options.traceOpts = append(options.traceOpts, opts...)
 	}
@@ -57,7 +61,9 @@ func WithTrace(opts ...otlptracegrpc.Option) Option {
 func WithMetric(opts ...otlpmetricgrpc.Option) Option {
 	return func(options *options) {
 		if options.metricOpts == nil {
-			options.metricOpts = []otlpmetricgrpc.Option{otlpmetricgrpc.WithInsecure()}
+			options.metricOpts = []otlpmetricgrpc.Option{
+				otlpmetricgrpc.WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+			}
 		}
 		options.metricOpts = append(options.metricOpts, opts...)
 	}
