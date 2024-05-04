@@ -20,11 +20,11 @@ func RecoveryInterceptor(handler http.Handler, logHandler slog.Handler) http.Han
 			if r := recover(); r != nil {
 				err, ok := r.(error)
 				if !ok {
-					err = fmt.Errorf("%v", r) //nolint:goerr113
+					err = fmt.Errorf("%v", r) //nolint:err113
 				}
 
 				var pcs [1]uintptr
-				runtime.Callers(3, pcs[:]) //nolint:gomnd // Skip runtime.Callers, panic, this function.
+				runtime.Callers(3, pcs[:]) //nolint:mnd // Skip runtime.Callers, panic, this function.
 				record := slog.NewRecord(time.Now(), slog.LevelError, "Panic Recovered", pcs[0])
 				record.AddAttrs(slog.Any("error", err))
 				_ = logHandler.Handle(ctx, record) // Ignore error: It's fine to lose log.

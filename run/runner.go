@@ -40,16 +40,25 @@ func New(opts ...Option) Runner {
 // The execution can be interrupted if any run returns non-nil error,
 // or it receives an OS signal syscall.SIGINT or syscall.SIGTERM.
 // It waits all run return unless it's forcefully terminated by OS.
+//
+// The execution flow is as follows:
+// 1. Starts all pre runs and start gates in parallel.
+// 2. Waits for all pre runs start and start gates complete.
+// 3. Starts all main runs.
+// 4. Waits for OS interrupt or terminal signals or all main runs complete.
+// 5. Waits for all stop gates complete.
+// 6. Stop all main runs.
+// 7. Waits for all post runs complete.
 func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) error { //nolint:funlen
-	allRuns := make([]func(context.Context) error, 0, len(r.preRuns)+1)
+	preRuns := make([]func(context.Context) error, 0, len(r.preRuns))
 	startGates := slices.Clone(r.startGates)
 	if len(r.preRuns) > 0 {
-		// Add gate to wait for all pre-runs to start.
+		// Append wait group to wait for all pre runs to start.
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(len(r.preRuns))
 		for _, run := range r.preRuns {
 			run := run
-			allRuns = append(allRuns,
+			preRuns = append(preRuns,
 				func(ctx context.Context) error {
 					waitGroup.Done()
 
@@ -57,6 +66,7 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 				},
 			)
 		}
+		// Add gate to wait for all pre runs to start.
 		startGates = append(startGates,
 			func(context.Context) error {
 				waitGroup.Wait()
@@ -66,45 +76,48 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 		)
 	}
 
-	// Root context which is used for pre-runs.
-	ctx, cancel := context.WithCancelCause(ctx)
-	defer cancel(nil)
-	// Context can be terminated by OS signals, which is used for start-gates and parent of context for main runs.
+	// Context can be terminated by either OS signals or cancellation on ctx.
 	signalCtx, signalCancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer signalCancel()
-	// Context is used for main runs and stop-gates.
-	runCtx, runCancel := context.WithCancel(ctx)
+
+	// Root context which is used for pre/post runs.
+	// It does not propagate the cancellation from ctx.
+	// It depends on signalCtx for cancellation.
+	rootCtx, rootCancel := context.WithCancelCause(context.WithoutCancel(ctx))
+	defer rootCancel(nil)
+	// Context is used for main runs with start/stop gates.
+	runCtx, runCancel := context.WithCancel(rootCtx)
 	defer runCancel()
 
-	allRuns = append(allRuns,
-		func(context.Context) error {
-			defer runCancel()
+	return Parallel(rootCtx,
+		append(preRuns,
+			func(context.Context) error {
+				defer runCancel() // Notify all main runs to stop.
 
-			<-signalCtx.Done()
+				<-signalCtx.Done()
 
-			return Parallel(runCtx, r.stopGates...)
-		},
-		func(context.Context) (err error) { //nolint:nonamedreturns
-			defer func() {
-				cancel(err)
-			}()
+				// Wait for all stop gates to open.
+				return Parallel(runCtx, r.stopGates...)
+			},
+			func(context.Context) (err error) { //nolint:nonamedreturns
+				defer func() {
+					signalCancel() // Stop listening to OS signals.
 
-			// Wait for all startGates to open.
-			// Use signalCtx to allow it to be interrupted by OS signals.
-			if err = Parallel(signalCtx, startGates...); err != nil {
-				return err
-			}
-			defer func() {
-				// Wait for all post-runs to finish.
-				e := Parallel(runCtx, r.postRuns...)
-				if err == nil {
-					err = e
+					// Wait for all post runs to finish.
+					e := Parallel(rootCtx, r.postRuns...)
+					if err == nil {
+						err = e
+					}
+					rootCancel(err) // Notify all pre runs to stop.
+				}()
+
+				// Wait for all start gates to open.
+				if err = Parallel(runCtx, startGates...); err != nil {
+					return err
 				}
-			}()
 
-			return Parallel(runCtx, runs...)
-		},
+				return Parallel(runCtx, runs...)
+			},
+		)...,
 	)
-
-	return Parallel(ctx, allRuns...)
 }

@@ -34,7 +34,7 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 		opt(option)
 	}
 	if option.timeout == 0 {
-		option.timeout = 10 * time.Second //nolint:gomnd
+		option.timeout = 10 * time.Second //nolint:mnd
 	}
 	if server == nil {
 		server = &http.Server{
@@ -43,13 +43,13 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 	}
 	if server.ReadTimeout == 0 {
 		// It has to be longer than the timeout of the handler.
-		server.ReadTimeout = option.timeout * 2 //nolint:gomnd
+		server.ReadTimeout = option.timeout * 2 //nolint:mnd
 	}
 	if server.WriteTimeout == 0 {
 		server.WriteTimeout = server.ReadTimeout
 	}
 	if server.IdleTimeout == 0 {
-		server.IdleTimeout = server.ReadTimeout * 3 //nolint:gomnd
+		server.IdleTimeout = server.ReadTimeout * 3 //nolint:mnd
 	}
 
 	if len(option.addresses) == 0 {

@@ -79,7 +79,7 @@ func Run(args ...any) error { //nolint:cyclop,funlen
 		case func(context.Context) error:
 			runners = append(runners, opt)
 		default:
-			return fmt.Errorf("unknown argument type: %T", opt) //nolint:goerr113
+			return fmt.Errorf("unknown argument type: %T", opt) //nolint:err113
 		}
 	}
 

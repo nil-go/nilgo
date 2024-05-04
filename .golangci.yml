@@ -35,8 +35,10 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
+    - canonicalheader
     - containedctx
     - contextcheck
+    # copyloopvar
     - cyclop
     - decorder
     # depguard
@@ -44,14 +46,15 @@ linters:
     - dupl
     - durationcheck
     - dupword
+    - err113
     - errcheck
     - errchkjson
     - errname
     - errorlint
-    - execinquery
     - exportloopref
     - exhaustive
     # exhaustruct
+    - fatcontext
     - forbidigo
     - forcetypeassert
     - funlen
@@ -67,12 +70,10 @@ linters:
     - gocyclo
     - godot
     - godox
-    - goerr113
     - gofmt
     - gofumpt
     - goheader
     - goimports
-    - gomnd
     - gomoddirectives
     - gomodguard
     - goprintffuncname
@@ -85,6 +86,7 @@ linters:
     - inamedparam
     - ineffassign
     - interfacebloat
+    # intrange
     - ireturn
     - lll
     - loggercheck
@@ -92,6 +94,7 @@ linters:
     - makezero
     - mirror
     - misspell
+    - mnd
     - musttag
     - nakedret
     - nestif
@@ -112,6 +115,7 @@ linters:
     - revive
     - rowserrcheck
     - sloglint
+    - spancheck
     - sqlclosecheck
     - staticcheck
     - stylecheck
@@ -140,11 +144,11 @@ issues:
     - path: _test\.go
       linters:
         - cyclop
+        - err113
         - forcetypeassert
         - funlen
         - gochecknoglobals
         - gochecknoinits
         - goconst
-        - goerr113
         - lll
         - wrapcheck

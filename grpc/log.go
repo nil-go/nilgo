@@ -11,7 +11,7 @@ import (
 	"github.com/nil-go/nilgo/grpc/internal"
 )
 
-func init() { //nolint:gochecknoinits
+func init() { //nolint:init
 	// Redirect gRPC log to slog.
 	grpclog.SetLoggerV2(internal.NewSlogger(slog.Default().Handler()))
 }
