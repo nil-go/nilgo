@@ -120,7 +120,15 @@ func TestRunner_Run_signal(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var runner run.Runner
+	startTime := time.Now()
+	var ran bool
+	runner := run.New(
+		run.WithPostRun(func(context.Context) error {
+			ran = ctx.Err() == nil
+
+			return nil
+		}),
+	)
 	assert.NoError(t, runner.Run(ctx,
 		func(ctx context.Context) error {
 			timer := time.NewTimer(time.Minute)
@@ -136,4 +144,40 @@ func TestRunner_Run_signal(t *testing.T) {
 			return syscall.Kill(os.Getpid(), syscall.SIGINT)
 		},
 	))
+	assert.Equal(t, true, ran)
+	assert.Equal(t, true, time.Since(startTime) < time.Minute)
+}
+
+func TestRunner_Run_cancel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	startTime := time.Now()
+	var ran bool
+	runner := run.New(
+		run.WithPostRun(func(ctx context.Context) error {
+			ran = ctx.Err() == nil
+
+			return nil
+		}),
+	)
+	assert.NoError(t, runner.Run(ctx,
+		func(ctx context.Context) error {
+			timer := time.NewTimer(time.Minute)
+			defer timer.Stop()
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-timer.C:
+				return errors.New("timeout")
+			}
+		},
+		func(context.Context) error {
+			cancel()
+
+			return nil
+		},
+	))
+	assert.Equal(t, true, ran)
+	assert.Equal(t, true, time.Since(startTime) < time.Minute)
 }

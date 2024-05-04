@@ -140,6 +140,7 @@ issues:
     - path: _test\.go
       linters:
         - cyclop
+        - err113
         - forcetypeassert
         - funlen
         - gochecknoglobals
