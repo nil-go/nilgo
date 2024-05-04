@@ -24,7 +24,7 @@ func NewClient(opts ...ClientOption) *http.Client {
 		option.maxConnections = 100
 	}
 
-	transportTimeout := option.timeout / 5 //nolint:gomnd
+	transportTimeout := option.timeout / 5 //nolint:mnd
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout: transportTimeout,

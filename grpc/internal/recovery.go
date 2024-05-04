@@ -58,11 +58,11 @@ func RecoveryStreamInterceptor(logHandler slog.Handler) func(
 func logPanic(ctx context.Context, handler slog.Handler, message any) error {
 	err, ok := message.(error)
 	if !ok {
-		err = fmt.Errorf("%v", message) //nolint:goerr113
+		err = fmt.Errorf("%v", message) //nolint:err113
 	}
 
 	var pcs [1]uintptr
-	runtime.Callers(4, pcs[:]) //nolint:gomnd // Skip runtime.Callers, panic, this function and interceptor.
+	runtime.Callers(4, pcs[:]) //nolint:mnd // Skip runtime.Callers, panic, this function and interceptor.
 	r := slog.NewRecord(time.Now(), slog.LevelError, "Panic Recovered", pcs[0])
 	r.AddAttrs(slog.Any("error", err))
 	_ = handler.Handle(ctx, r) // Ignore error: It's fine to lose log.

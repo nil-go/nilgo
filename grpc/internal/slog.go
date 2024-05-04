@@ -131,7 +131,7 @@ func (g Slogger) log(depth int, level slog.Level, message string) {
 
 	var pcs [1]uintptr
 	// Skip runtime.Callers, this method, log methods like Info in this package and grpclog.
-	runtime.Callers(depth+4, pcs[:]) //nolint:gomnd
+	runtime.Callers(depth+4, pcs[:]) //nolint:mnd
 	// Ignore error: It's fine to lose log.
 	_ = handler.Handle(ctx, slog.NewRecord(time.Now(), level, message, pcs[0]))
 }
