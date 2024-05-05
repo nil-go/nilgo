@@ -85,12 +85,8 @@ func TestRun_error(t *testing.T) {
 		},
 		{
 			description: "config error",
-			args: []any{
-				config.With(func(*konf.Config) error {
-					return errors.New("config error")
-				}),
-			},
-			err: "init config: config error",
+			args:        []any{errLoader{}},
+			err:         "init config: load configuration: loader error",
 		},
 		{
 			description: "runner error",
@@ -111,4 +107,10 @@ func TestRun_error(t *testing.T) {
 			assert.Equal(t, testcase.err, err.Error())
 		})
 	}
+}
+
+type errLoader struct{}
+
+func (errLoader) Load() (map[string]any, error) {
+	return nil, errors.New("loader error")
 }

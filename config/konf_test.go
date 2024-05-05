@@ -4,14 +4,11 @@
 package config_test
 
 import (
-	"errors"
 	"testing"
 	"testing/fstest"
 
 	"github.com/nil-go/konf"
 	"github.com/nil-go/konf/provider/env"
-	"github.com/nil-go/konf/provider/fs"
-	"gopkg.in/yaml.v3"
 
 	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/internal/assert"
@@ -90,37 +87,11 @@ Here are other value(loader)s:
 `,
 		},
 		{
-			description: "with",
-			opts: []config.Option{
-				config.With(func(cfg *konf.Config) error {
-					return cfg.Load(fs.New(nil, "testdata/config.yaml", fs.WithUnmarshal(yaml.Unmarshal)))
-				}),
-				config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
-			},
-			key: "nilgo.Source",
-			explanation: `nilgo.Source has value[file] that is loaded by loader[fs:///testdata/config.yaml].
-Here are other value(loader)s:
-  - fs(fs:///config/config.yaml)
-
-`,
-		},
-		{
 			description: "unmarshal error",
 			opts:        []config.Option{config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo")}})},
 			key:         "nilgo.source",
 			err: "load config file config/config.yaml: load configuration: unmarshal: yaml: unmarshal errors:\n" +
 				"  line 1: cannot unmarshal !!str `nilgo` into map[string]interface {}",
-		},
-		{
-			description: "with error",
-			opts: []config.Option{
-				config.With(func(*konf.Config) error {
-					return errors.New("with error")
-				}),
-				config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
-			},
-			key: "nilgo.Source",
-			err: "with error",
 		},
 	}
 

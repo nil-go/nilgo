@@ -58,11 +58,6 @@ func New(opts ...Option) (*konf.Config, error) {
 	}
 	// Ignore error: env loader does not return error.
 	_ = config.Load(env.New())
-	if options.fn != nil {
-		if err := options.fn(config); err != nil {
-			return nil, err
-		}
-	}
 
 	return config, nil
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package http_test
+package client_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	nhttp "github.com/nil-go/nilgo/http"
+	nhttp "github.com/nil-go/nilgo/http/client"
 	"github.com/nil-go/nilgo/http/internal/assert"
 )
 
@@ -18,7 +18,7 @@ func TestNewClient(t *testing.T) {
 
 	testcases := []struct {
 		description string
-		opts        []nhttp.ClientOption
+		opts        []nhttp.Option
 		assertion   func(*http.Client)
 	}{
 		{
@@ -41,8 +41,8 @@ func TestNewClient(t *testing.T) {
 		},
 		{
 			description: "with timeout",
-			opts: []nhttp.ClientOption{
-				nhttp.WithClientTimeout(10 * time.Second),
+			opts: []nhttp.Option{
+				nhttp.WithTimeout(10 * time.Second),
 			},
 			assertion: func(client *http.Client) {
 				client.Timeout = time.Second
@@ -54,8 +54,8 @@ func TestNewClient(t *testing.T) {
 		},
 		{
 			description: "with max connections",
-			opts: []nhttp.ClientOption{
-				nhttp.WithClientMaxConnections(10),
+			opts: []nhttp.Option{
+				nhttp.WithMaxConnections(10),
 			},
 			assertion: func(client *http.Client) {
 				client.Timeout = time.Second
@@ -67,8 +67,8 @@ func TestNewClient(t *testing.T) {
 		},
 		{
 			description: "with unix socket",
-			opts: []nhttp.ClientOption{
-				nhttp.WithClientUnixSocket(),
+			opts: []nhttp.Option{
+				nhttp.WithUnixSocket(),
 			},
 			assertion: func(client *http.Client) {
 				req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "unix://.test.sock", nil)
@@ -83,7 +83,7 @@ func TestNewClient(t *testing.T) {
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
-			client := nhttp.NewClient(testcase.opts...)
+			client := nhttp.New(testcase.opts...)
 			testcase.assertion(client)
 		})
 	}
