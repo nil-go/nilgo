@@ -43,11 +43,7 @@ func TestOptions(t *testing.T) {
 		{
 			description: "with options",
 			opts: []gcp.Option{
-				gcp.WithOptions(func() []gcp.Option {
-					return []gcp.Option{
-						gcp.WithProject("project"),
-					}
-				}),
+				gcp.WithProject("project"),
 			},
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()

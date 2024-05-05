@@ -32,6 +32,10 @@ import (
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
+//
+// By default, above args are statics which could not change according to the configuration.
+// If the args need to by dynamic, it should be wrapped in func() []any,
+// which returns args according to the configuration.
 func Run(args ...any) error {
 	// Setup configuration first so others can use it.
 	var configOpts []config.Option
