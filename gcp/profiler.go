@@ -45,15 +45,15 @@ func profile(options *options) func(context.Context) error {
 	}
 
 	return func(ctx context.Context) error {
-		slog.LogAttrs(ctx, slog.LevelInfo, "Start cloud profiler.", slog.String("project", options.project))
 		if err := profiler.Start(profiler.Config{
 			ProjectID:      options.project,
 			Service:        options.service,
 			ServiceVersion: options.version,
 			MutexProfiling: options.mutextProfiling,
 		}, options.profilerOpts...); err != nil {
-			return fmt.Errorf("start cloud profiler: %w", err)
+			return fmt.Errorf("start cloud profiling: %w", err)
 		}
+		slog.LogAttrs(ctx, slog.LevelInfo, "Cloud profiling has been initialized.")
 
 		return nil
 	}

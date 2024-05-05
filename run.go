@@ -34,10 +34,12 @@ import (
 //   - func(context.Context) error
 func Run(args ...any) error { //nolint:cyclop,funlen
 	var (
-		configOpts []config.Option
-		logOpts    []log.Option
-		runOpts    []run.Option
-		runners    []func(context.Context) error
+		configOpts    []config.Option
+		logOpts       []log.Option
+		runOpts       []run.Option
+		runners       []func(context.Context) error
+		traceProvider trace.TracerProvider
+		meterProvider metric.MeterProvider
 	)
 	for _, arg := range args {
 		switch opt := arg.(type) {
@@ -48,18 +50,7 @@ func Run(args ...any) error { //nolint:cyclop,funlen
 		case log.Option:
 			logOpts = append(logOpts, opt)
 		case trace.TracerProvider:
-			otel.SetTracerProvider(opt)
-			otel.SetTextMapPropagator(
-				propagation.NewCompositeTextMapPropagator(
-					propagation.TraceContext{},
-					propagation.Baggage{},
-				),
-			)
-			if provider, ok := opt.(interface {
-				Shutdown(ctx context.Context) error
-			}); ok {
-				runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
-			}
+			traceProvider = opt
 			logOpts = append([]log.Option{
 				log.WithSampler(func(ctx context.Context) bool {
 					sc := trace.SpanContextFromContext(ctx)
@@ -68,12 +59,7 @@ func Run(args ...any) error { //nolint:cyclop,funlen
 				}),
 			}, logOpts...)
 		case metric.MeterProvider:
-			otel.SetMeterProvider(opt)
-			if provider, ok := opt.(interface {
-				Shutdown(ctx context.Context) error
-			}); ok {
-				runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
-			}
+			meterProvider = opt
 		case run.Option:
 			runOpts = append(runOpts, opt)
 		case func(context.Context) error:
@@ -83,16 +69,42 @@ func Run(args ...any) error { //nolint:cyclop,funlen
 		}
 	}
 
-	// Initialize the global konf.Config.
+	logger := log.New(logOpts...)
+	slog.SetDefault(logger)
+	slog.Info("Logger has been initialized.")
+
 	cfg, err := config.New(configOpts...)
 	if err != nil {
 		return fmt.Errorf("init config: %w", err)
 	}
 	konf.SetDefault(cfg)
+	slog.Info("Config has been initialized.")
 
-	// Initialize the global slog.Logger.
-	logger := log.New(logOpts...)
-	slog.SetDefault(logger)
+	if traceProvider != nil {
+		otel.SetTracerProvider(traceProvider)
+		otel.SetTextMapPropagator(
+			propagation.NewCompositeTextMapPropagator(
+				propagation.TraceContext{},
+				propagation.Baggage{},
+			),
+		)
+		if provider, ok := traceProvider.(interface {
+			Shutdown(ctx context.Context) error
+		}); ok {
+			runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
+		}
+		slog.Info("Trace provider has been initialized.")
+	}
+
+	if meterProvider != nil {
+		otel.SetMeterProvider(meterProvider)
+		if provider, ok := meterProvider.(interface {
+			Shutdown(ctx context.Context) error
+		}); ok {
+			runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
+		}
+		slog.Info("Meter provider has been initialized.")
+	}
 
 	runner := run.New(append(runOpts, run.WithPreRun(cfg.Watch))...)
 	if err := runner.Run(context.Background(), runners...); err != nil {

@@ -38,7 +38,7 @@ func PProf(ctx context.Context) error {
 		slog.LogAttrs(ctx, slog.LevelInfo, "Shutdown pprof Server completed.")
 	})()
 
-	slog.LogAttrs(ctx, slog.LevelInfo, "Starting pprof server.")
+	slog.LogAttrs(ctx, slog.LevelInfo, "Starting pprof server...")
 	listener, err := net.Listen("tcp", "localhost:6060")
 	if err != nil {
 		listener, err = net.Listen("tcp", "localhost:0")
