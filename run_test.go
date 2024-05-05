@@ -56,7 +56,11 @@ func TestRun(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, started)
-	assert.Equal(t, `{"level":"INFO","msg":"info log","source":"fs"}
+	assert.Equal(t, `{"level":"INFO","msg":"Logger has been initialized."}
+{"level":"INFO","msg":"Config has been initialized."}
+{"level":"INFO","msg":"Trace provider has been initialized."}
+{"level":"INFO","msg":"Meter provider has been initialized."}
+{"level":"INFO","msg":"info log","source":"fs"}
 `, buf.String())
 }
 
