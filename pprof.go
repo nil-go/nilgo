@@ -13,8 +13,6 @@ import (
 	"net/http/pprof"
 	"runtime"
 	"time"
-
-	"github.com/nil-go/nilgo/run"
 )
 
 // PProf starts a pprof server at localhost:6060.
@@ -27,38 +25,35 @@ func PProf(ctx context.Context) error {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
 	server := &http.Server{
 		Handler:     mux,
 		ReadTimeout: time.Second,
 	}
 
-	return run.WithCloser(
-		func(ctx context.Context) error {
-			listener, err := net.Listen("tcp", "localhost:6060")
-			if err != nil {
-				listener, err = net.Listen("tcp", "localhost:0")
-				if err != nil {
-					slog.LogAttrs(ctx, slog.LevelWarn, "Fail to find port for pprof server.", slog.Any("error", err))
+	defer context.AfterFunc(ctx, func() {
+		slog.LogAttrs(ctx, slog.LevelInfo, "Starting shutdown pprof Server...")
+		if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
+			slog.LogAttrs(ctx, slog.LevelWarn, "Fail to shutdown pprof server.", slog.Any("error", err))
+		}
+		slog.LogAttrs(ctx, slog.LevelInfo, "Shutdown pprof Server completed.")
+	})()
 
-					return nil
-				}
-			}
-			slog.LogAttrs(ctx, slog.LevelInfo, fmt.Sprintf("Start pprof server at http://%s/debug/pprof/.", listener.Addr()))
-
-			runtime.SetBlockProfileRate(1) // Required by gRPC server.
-			if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				slog.LogAttrs(ctx, slog.LevelWarn, "Fail to start pprof server.", slog.Any("error", err))
-			}
+	slog.LogAttrs(ctx, slog.LevelInfo, "Starting pprof server.")
+	listener, err := net.Listen("tcp", "localhost:6060")
+	if err != nil {
+		listener, err = net.Listen("tcp", "localhost:0")
+		if err != nil {
+			slog.LogAttrs(ctx, slog.LevelWarn, "Fail to find port for pprof server.", slog.Any("error", err))
 
 			return nil
-		},
-		func() error {
-			if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
-				slog.LogAttrs(ctx, slog.LevelWarn, "Fail to shutdown pprof server.", slog.Any("error", err))
-			}
+		}
+	}
+	slog.LogAttrs(ctx, slog.LevelInfo, fmt.Sprintf("pprof server started at http://%s/debug/pprof/.", listener.Addr()))
 
-			return nil
-		},
-	)(ctx)
+	runtime.SetBlockProfileRate(1) // Required by gRPC server.
+	if err := server.Serve(listener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		slog.LogAttrs(ctx, slog.LevelWarn, "Fail to start pprof server.", slog.Any("error", err))
+	}
+
+	return nil
 }
