@@ -32,83 +32,110 @@ import (
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
-func Run(args ...any) error { //nolint:cyclop,funlen
-	var (
-		configOpts    []config.Option
-		logOpts       []log.Option
-		runOpts       []run.Option
-		runners       []func(context.Context) error
-		traceProvider trace.TracerProvider
-		meterProvider metric.MeterProvider
-	)
+func Run(args ...any) error {
+	// Setup configuration first so others can use it.
+	var configOpts []config.Option
 	for _, arg := range args {
-		switch opt := arg.(type) {
-		case config.Option:
+		if opt, ok := arg.(config.Option); ok {
 			configOpts = append(configOpts, opt)
-		case slog.Handler:
-			logOpts = append(logOpts, log.WithHandler(opt))
-		case log.Option:
-			logOpts = append(logOpts, opt)
-		case trace.TracerProvider:
-			traceProvider = opt
-			logOpts = append([]log.Option{
-				log.WithSampler(func(ctx context.Context) bool {
-					sc := trace.SpanContextFromContext(ctx)
-
-					return !sc.IsValid() || sc.IsSampled()
-				}),
-			}, logOpts...)
-		case metric.MeterProvider:
-			meterProvider = opt
-		case run.Option:
-			runOpts = append(runOpts, opt)
-		case func(context.Context) error:
-			runners = append(runners, opt)
-		default:
-			return fmt.Errorf("unknown argument type: %T", opt) //nolint:err113
 		}
 	}
-
-	logger := log.New(logOpts...)
-	slog.SetDefault(logger)
-	slog.Info("Logger has been initialized.")
-
 	cfg, err := config.New(configOpts...)
 	if err != nil {
 		return fmt.Errorf("init config: %w", err)
 	}
 	konf.SetDefault(cfg)
-	slog.Info("Config has been initialized.")
 
-	if traceProvider != nil {
-		otel.SetTracerProvider(traceProvider)
+	option := options{
+		runOpts: []run.Option{
+			run.WithPreRun(cfg.Watch),
+		},
+	}
+	if err := option.apply(args); err != nil {
+		return err
+	}
+
+	if option.traceProvider != nil {
+		// Append log sampler at the beginning so it can be overridden by user.
+		option.logOpts = append([]log.Option{log.WithSampler(traceSampler())}, option.logOpts...)
+	}
+	slog.SetDefault(log.New(option.logOpts...))
+	slog.Info("Logger has been initialized.")
+
+	if option.traceProvider != nil {
+		otel.SetTracerProvider(option.traceProvider)
 		otel.SetTextMapPropagator(
 			propagation.NewCompositeTextMapPropagator(
 				propagation.TraceContext{},
 				propagation.Baggage{},
 			),
 		)
-		if provider, ok := traceProvider.(interface {
-			Shutdown(ctx context.Context) error
-		}); ok {
-			runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
-		}
 		slog.Info("Trace provider has been initialized.")
 	}
 
-	if meterProvider != nil {
-		otel.SetMeterProvider(meterProvider)
-		if provider, ok := meterProvider.(interface {
-			Shutdown(ctx context.Context) error
-		}); ok {
-			runOpts = append(runOpts, run.WithPostRun(provider.Shutdown))
-		}
+	if option.meterProvider != nil {
+		otel.SetMeterProvider(option.meterProvider)
 		slog.Info("Meter provider has been initialized.")
 	}
 
-	runner := run.New(append(runOpts, run.WithPreRun(cfg.Watch))...)
-	if err := runner.Run(context.Background(), runners...); err != nil {
+	runner := run.New(option.runOpts...)
+	if err := runner.Run(context.Background(), option.runners...); err != nil {
 		return fmt.Errorf("run: %w", err)
+	}
+
+	return nil
+}
+
+func traceSampler() func(ctx context.Context) bool {
+	return func(ctx context.Context) bool {
+		sc := trace.SpanContextFromContext(ctx)
+
+		return !sc.IsValid() || sc.IsSampled()
+	}
+}
+
+type options struct {
+	logOpts       []log.Option
+	runOpts       []run.Option
+	runners       []func(context.Context) error
+	traceProvider trace.TracerProvider
+	meterProvider metric.MeterProvider
+}
+
+func (o *options) apply(args []any) error { //nolint:cyclop
+	for _, arg := range args {
+		switch opt := arg.(type) {
+		case func() []any:
+			if err := o.apply(opt()); err != nil {
+				return err
+			}
+		case config.Option:
+			// Already handled.
+		case slog.Handler:
+			o.logOpts = append(o.logOpts, log.WithHandler(opt))
+		case log.Option:
+			o.logOpts = append(o.logOpts, opt)
+		case trace.TracerProvider:
+			o.traceProvider = opt
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				o.runOpts = append(o.runOpts, run.WithPostRun(provider.Shutdown))
+			}
+		case metric.MeterProvider:
+			o.meterProvider = opt
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				o.runOpts = append(o.runOpts, run.WithPostRun(provider.Shutdown))
+			}
+		case run.Option:
+			o.runOpts = append(o.runOpts, opt)
+		case func(context.Context) error:
+			o.runners = append(o.runners, opt)
+		default:
+			return fmt.Errorf("unknown argument type: %T", opt) //nolint:err113
+		}
 	}
 
 	return nil
