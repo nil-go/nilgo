@@ -29,7 +29,6 @@ func WithProfiler(opts ...option.ClientOption) Option {
 // WithMutextProfiling enables mutex profiling.
 func WithMutextProfiling() Option {
 	return func(options *options) {
-		WithProfiler()(options) // enable profiler if not enabled
 		options.mutextProfiling = true
 	}
 }
@@ -40,7 +39,7 @@ type profilerOptions struct {
 }
 
 func profile(options *options) func(context.Context) error {
-	if options.profilerOpts == nil {
+	if options.profilerOpts == nil && !options.mutextProfiling {
 		return nil
 	}
 
