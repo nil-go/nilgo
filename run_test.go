@@ -40,13 +40,22 @@ func TestRun(t *testing.T) {
 		}),
 		log.WithSampler(func(context.Context) bool { return true }),
 		config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
-		nooptrace.NewTracerProvider(),
-		noopmetric.NewMeterProvider(),
 		run.WithPreRun(func(context.Context) error {
 			started = true
 
 			return nil
 		}),
+		func() []any {
+			var args []any
+			if konf.Get[string]("nilgo.source") == "fs" {
+				args = append(args,
+					nooptrace.NewTracerProvider(),
+					noopmetric.NewMeterProvider(),
+				)
+			}
+
+			return args
+		},
 		func(context.Context) error {
 			slog.Info("info log", "source", konf.Get[string]("nilgo.source"))
 
@@ -57,7 +66,6 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, true, started)
 	assert.Equal(t, `{"level":"INFO","msg":"Logger has been initialized."}
-{"level":"INFO","msg":"Config has been initialized."}
 {"level":"INFO","msg":"Trace provider has been initialized."}
 {"level":"INFO","msg":"Meter provider has been initialized."}
 {"level":"INFO","msg":"info log","source":"fs"}
