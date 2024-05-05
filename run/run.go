@@ -9,11 +9,11 @@ import (
 	"sync"
 )
 
-// Parallel executes the given runs in parallel.
+// parallel executes the given runs in parallel.
 //
 // It blocks until all runs complete or ctx is done, then
 // returns the first non-nil error if received from any run.
-func Parallel(ctx context.Context, runs ...func(context.Context) error) error {
+func parallel(ctx context.Context, runs ...func(context.Context) error) error {
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 

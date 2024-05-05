@@ -89,7 +89,7 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 	runCtx, runCancel := context.WithCancel(rootCtx)
 	defer runCancel()
 
-	return Parallel(rootCtx,
+	return parallel(rootCtx,
 		append(preRuns,
 			func(context.Context) error {
 				defer runCancel() // Notify all main runs to stop.
@@ -97,14 +97,14 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 				<-signalCtx.Done()
 
 				// Wait for all stop gates to open.
-				return Parallel(runCtx, r.stopGates...)
+				return parallel(runCtx, r.stopGates...)
 			},
 			func(context.Context) (err error) { //nolint:nonamedreturns
 				defer func() {
 					signalCancel() // Stop listening to OS signals.
 
 					// Wait for all post runs to finish.
-					e := Parallel(rootCtx, r.postRuns...)
+					e := parallel(rootCtx, r.postRuns...)
 					if err == nil {
 						err = e
 					}
@@ -112,11 +112,11 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 				}()
 
 				// Wait for all start gates to open.
-				if err = Parallel(runCtx, startGates...); err != nil {
+				if err = parallel(runCtx, startGates...); err != nil {
 					return err
 				}
 
-				return Parallel(runCtx, runs...)
+				return parallel(runCtx, runs...)
 			},
 		)...,
 	)
