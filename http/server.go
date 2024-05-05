@@ -82,8 +82,17 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 		ctx, cancel := context.WithCancelCause(ctx)
 		defer cancel(nil)
 
+		defer context.AfterFunc(ctx, func() {
+			slog.LogAttrs(ctx, slog.LevelInfo, "Starting shutdown HTTP Server...")
+			if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
+				cancel(fmt.Errorf("shutdown HTTP Server: %w", err))
+			}
+			slog.LogAttrs(ctx, slog.LevelInfo, "Shutdown HTTP Server completed.")
+		})()
+
+		slog.LogAttrs(ctx, slog.LevelInfo, "Starting HTTP Server...")
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(len(option.addresses) + 1)
+		waitGroup.Add(len(option.addresses))
 		if slices.ContainsFunc(option.addresses, func(addr socket) bool { return addr.network == unix }) {
 			if transport, ok := http.DefaultTransport.(*http.Transport); ok {
 				internal.RegisterUnixProtocol(transport)
@@ -112,15 +121,6 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 				}
 			}()
 		}
-		go func() {
-			defer waitGroup.Done()
-
-			<-ctx.Done()
-			if err := server.Shutdown(context.WithoutCancel(ctx)); err != nil {
-				cancel(fmt.Errorf("shutdown HTTP Server: %w", err))
-			}
-			slog.LogAttrs(ctx, slog.LevelInfo, "HTTP Server is stopped.")
-		}()
 		waitGroup.Wait()
 
 		if err := context.Cause(ctx); err != nil && !errors.Is(err, ctx.Err()) {

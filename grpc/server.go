@@ -86,8 +86,21 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 		ctx, cancel := context.WithCancelCause(ctx)
 		defer cancel(nil)
 
+		defer context.AfterFunc(ctx, func() {
+			slog.LogAttrs(ctx, slog.LevelInfo, "Starting shutdown gRPC Server...")
+			if healthServer != nil {
+				// Shutdown health server so client knows it's not serving.
+				slog.LogAttrs(ctx, slog.LevelInfo, "Starting shutdown gRPC Health service...")
+				healthServer.Shutdown()
+				slog.LogAttrs(ctx, slog.LevelInfo, "Shutdown gRPC Health service completed.")
+			}
+			server.GracefulStop()
+			slog.LogAttrs(ctx, slog.LevelInfo, "Shutdown gRPC Server completed.")
+		})()
+
+		slog.LogAttrs(ctx, slog.LevelInfo, "Starting gRPC Server...")
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(len(option.addresses) + 1)
+		waitGroup.Add(len(option.addresses))
 		for _, addr := range option.addresses {
 			addr := addr
 			go func() {
@@ -111,17 +124,6 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 				}
 			}()
 		}
-		go func() {
-			defer waitGroup.Done()
-
-			<-ctx.Done()
-			if healthServer != nil {
-				// Shutdown health server so client knows it's not serving.
-				healthServer.Shutdown()
-			}
-			server.GracefulStop()
-			slog.LogAttrs(ctx, slog.LevelInfo, "gRPC Server is stopped.")
-		}()
 		waitGroup.Wait()
 
 		if err := context.Cause(ctx); err != nil && !errors.Is(err, ctx.Err()) {
