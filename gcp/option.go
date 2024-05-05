@@ -67,17 +67,6 @@ func WithMetric(opts ...otlpmetricgrpc.Option) Option {
 	}
 }
 
-// WithOptions provides the function which returns multiple Option(s).
-// It's useful while the Option needs to read configuration from config,
-// since it defers the creation of Option(s) until the config is loaded.
-func WithOptions(f func() []Option) Option {
-	return func(options *options) {
-		for _, opt := range f() {
-			opt(options)
-		}
-	}
-}
-
 type (
 	// Option configures the GCP runtime with specific options.
 	Option  func(*options)
