@@ -36,13 +36,6 @@ func WithOption(opts ...konf.Option) Option {
 	}
 }
 
-// With allows to customize the config with the given function.
-func With(fn func(config *konf.Config) error) Option {
-	return func(options *options) {
-		options.fn = fn
-	}
-}
-
 type (
 	// Option configures the config with specific options.
 	Option  func(*options)
@@ -50,6 +43,5 @@ type (
 		opts  []konf.Option
 		files []string
 		fs    fs.FS
-		fn    func(*konf.Config) error
 	}
 )

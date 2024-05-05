@@ -36,7 +36,7 @@ import (
 // By default, above args are statics which could not change according to the configuration.
 // If the args need to by dynamic, it should be wrapped in func() []any,
 // which returns args according to the configuration.
-func Run(args ...any) error {
+func Run(args ...any) error { //nolint:cyclop
 	// Setup configuration first so others can use it.
 	var configOpts []config.Option
 	for _, arg := range args {
@@ -57,6 +57,12 @@ func Run(args ...any) error {
 	}
 	if err := option.apply(args); err != nil {
 		return err
+	}
+
+	for _, loader := range option.loaders {
+		if err := cfg.Load(loader); err != nil {
+			return fmt.Errorf("init config: %w", err)
+		}
 	}
 
 	if option.traceProvider != nil {
@@ -99,6 +105,7 @@ func traceSampler() func(ctx context.Context) bool {
 }
 
 type options struct {
+	loaders       []konf.Loader
 	logOpts       []log.Option
 	runOpts       []run.Option
 	runners       []func(context.Context) error
@@ -113,6 +120,8 @@ func (o *options) apply(args []any) error { //nolint:cyclop
 			if err := o.apply(opt()); err != nil {
 				return err
 			}
+		case konf.Loader:
+			o.loaders = append(o.loaders, opt)
 		case config.Option:
 			// Already handled.
 		case slog.Handler:
