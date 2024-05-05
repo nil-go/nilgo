@@ -7,6 +7,7 @@ import (
 	"github.com/nil-go/sloth/gcp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"google.golang.org/api/option"
 )
 
 // WithProject provides the GCP project ID.
@@ -67,6 +68,27 @@ func WithMetric(opts ...otlpmetricgrpc.Option) Option {
 	}
 }
 
+// WithProfiler enables Google [Cloud Profiler].
+// It requires the following IAM roles:
+//   - roles/cloudprofiler.agent
+//
+// [Cloud Profiler]: https://cloud.google.com/profiler
+func WithProfiler(opts ...option.ClientOption) Option {
+	return func(options *options) {
+		if options.profilerOpts == nil {
+			options.profilerOpts = []option.ClientOption{}
+		}
+		options.profilerOpts = append(options.profilerOpts, opts...)
+	}
+}
+
+// WithMutextProfiling enables mutex profiling.
+func WithMutextProfiling() Option {
+	return func(options *options) {
+		options.mutextProfiling = true
+	}
+}
+
 type (
 	// Option configures the GCP runtime with specific options.
 	Option  func(*options)
@@ -75,9 +97,10 @@ type (
 		service string
 		version string
 
-		logOpts    []gcp.Option
-		metricOpts []otlpmetricgrpc.Option
-		traceOpts  []otlptracegrpc.Option
-		profilerOptions
+		logOpts         []gcp.Option
+		metricOpts      []otlpmetricgrpc.Option
+		traceOpts       []otlptracegrpc.Option
+		profilerOpts    []option.ClientOption
+		mutextProfiling bool
 	}
 )

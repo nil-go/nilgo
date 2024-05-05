@@ -16,9 +16,11 @@ package gcp
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"cloud.google.com/go/compute/metadata"
+	"cloud.google.com/go/profiler"
 	"github.com/nil-go/sloth/gcp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -57,13 +59,6 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 		return appOpts, nil
 	}
 
-	if runner := profile(&option); runner != nil {
-		appOpts = append(appOpts, runner)
-	}
-	if option.traceOpts == nil && option.metricOpts == nil {
-		return appOpts, nil
-	}
-
 	res := resource.Default()
 	ctx := context.Background()
 	if option.traceOpts != nil {
@@ -91,6 +86,22 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 				metric.WithResource(res),
 			),
 		)
+	}
+
+	if option.profilerOpts != nil || option.mutextProfiling {
+		appOpts = append(appOpts, func(ctx context.Context) error {
+			if err := profiler.Start(profiler.Config{
+				ProjectID:      option.project,
+				Service:        option.service,
+				ServiceVersion: option.version,
+				MutexProfiling: option.mutextProfiling,
+			}, option.profilerOpts...); err != nil {
+				return fmt.Errorf("start cloud profiling: %w", err)
+			}
+			slog.LogAttrs(ctx, slog.LevelInfo, "Cloud profiling has been initialized.")
+
+			return nil
+		})
 	}
 
 	return appOpts, nil
