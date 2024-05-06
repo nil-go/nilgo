@@ -6,27 +6,31 @@
 // It integrates with following GCP services:
 //   - [Cloud Logging]
 //   - [Cloud Error Reporting]
+//   - [Cloud Trace]
+//   - [Cloud Monitoring]
 //   - [Cloud Profiler]
 //
 // [Cloud Logging]: https://cloud.google.com/logging
 // [Cloud Error Reporting]: https://cloud.google.com/error-reporting
+// [Cloud Trace]: https://cloud.google.com/trace
+// [Cloud Monitoring]: https://cloud.google.com/monitoring
 // [Cloud Profiler]: https://cloud.google.com/profiler
 package gcp
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 
 	"cloud.google.com/go/compute/metadata"
-	"cloud.google.com/go/profiler"
 	"github.com/nil-go/sloth/gcp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
+
+	"github.com/nil-go/nilgo/gcp/profiler"
 )
 
 // Options provides the [nilgo.Run] options for application runs on GCP.
@@ -49,15 +53,17 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 		option.version = os.Getenv("K_REVISION")
 	}
 
-	appOpts := []any{
-		gcp.New(append(option.logOpts,
-			gcp.WithTrace(option.project),
-			gcp.WithErrorReporting(option.service, option.version),
-		)...),
+	if option.logOpts != nil {
+		option.logOpts = append(option.logOpts, gcp.WithErrorReporting(option.service, option.version))
 	}
 	if option.project == "" {
-		return appOpts, nil
+		return []any{gcp.New(option.logOpts...)}, nil
 	}
+
+	if option.traceOpts != nil {
+		option.logOpts = append(option.logOpts, gcp.WithTrace(option.project))
+	}
+	appOpts := []any{gcp.New(option.logOpts...)}
 
 	res := resource.Default()
 	ctx := context.Background()
@@ -88,20 +94,16 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 		)
 	}
 
-	if option.profilerOpts != nil || option.mutextProfiling {
-		appOpts = append(appOpts, func(ctx context.Context) error {
-			if err := profiler.Start(profiler.Config{
-				ProjectID:      option.project,
-				Service:        option.service,
-				ServiceVersion: option.version,
-				MutexProfiling: option.mutextProfiling,
-			}, option.profilerOpts...); err != nil {
-				return fmt.Errorf("start cloud profiling: %w", err)
-			}
-			slog.LogAttrs(ctx, slog.LevelInfo, "Cloud profiling has been initialized.")
-
-			return nil
-		})
+	if option.profilerOpts != nil {
+		option.profilerOpts = append(
+			[]profiler.Option{
+				profiler.WithProject(option.project),
+				profiler.WithService(option.service),
+				profiler.WithVersion(option.version),
+			},
+			option.profilerOpts...,
+		)
+		appOpts = append(appOpts, profiler.Run(option.profilerOpts...))
 	}
 
 	return appOpts, nil
