@@ -13,6 +13,7 @@ import (
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/gcp"
+	"github.com/nil-go/nilgo/gcp/profiler"
 	ngrpc "github.com/nil-go/nilgo/grpc"
 )
 
@@ -24,9 +25,10 @@ func main() {
 	switch {
 	case metadata.OnGCE():
 		opts, err := gcp.Options(
+			gcp.WithLog(),
 			gcp.WithTrace(),
 			gcp.WithMetric(),
-			gcp.WithProfiler(),
+			gcp.WithProfiler(profiler.WithMutexProfiling()),
 		)
 		if err != nil {
 			panic(err)

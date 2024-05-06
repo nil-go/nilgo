@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/nil-go/nilgo/gcp"
+	"github.com/nil-go/nilgo/gcp/profiler"
 )
 
 func TestOptions(t *testing.T) {
@@ -57,8 +58,7 @@ func TestOptions(t *testing.T) {
 			description: "with profiler",
 			opts: []gcp.Option{
 				gcp.WithProject("project"),
-				gcp.WithProfiler(),
-				gcp.WithMutextProfiling(),
+				gcp.WithProfiler(profiler.WithMutexProfiling()),
 			},
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
@@ -105,7 +105,7 @@ func TestOptions(t *testing.T) {
 		{
 			description: "without project",
 			opts: []gcp.Option{
-				gcp.WithLogOptions(sgcp.WithLevel(slog.LevelError)),
+				gcp.WithLog(sgcp.WithLevel(slog.LevelError)),
 				gcp.WithProfiler(),
 			},
 			assertion: func(t *testing.T, opts []any) {

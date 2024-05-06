@@ -37,14 +37,19 @@ func WithVersion(version string) Option {
 	}
 }
 
-// WithLogOptions provides the gcp.Option(s) to configure the logger.
-func WithLogOptions(opts gcp.Option) Option {
+// WithLog provides the gcp.Option(s) to configure the logger.
+func WithLog(opts ...gcp.Option) Option {
 	return func(options *options) {
-		options.logOpts = append(options.logOpts, opts)
+		if options.logOpts == nil {
+			options.logOpts = []gcp.Option{}
+		}
+		options.logOpts = append(options.logOpts, opts...)
 	}
 }
 
 // WithTrace enables otlp trace provider with give otlptracegrpc.Option(s).
+// It requires the following IAM roles:
+//   - roles/cloudtrace.agent
 func WithTrace(opts ...otlptracegrpc.Option) Option {
 	return func(options *options) {
 		if options.traceOpts == nil {
@@ -57,6 +62,8 @@ func WithTrace(opts ...otlptracegrpc.Option) Option {
 }
 
 // WithMetric enables otlp metric provider with give otlpmetricgrpc.Option(s).
+// It requires the following IAM roles:
+//   - roles/monitoring.metricWriter
 func WithMetric(opts ...otlpmetricgrpc.Option) Option {
 	return func(options *options) {
 		if options.metricOpts == nil {
@@ -82,13 +89,6 @@ func WithProfiler(opts ...option.ClientOption) Option {
 	}
 }
 
-// WithMutextProfiling enables mutex profiling.
-func WithMutextProfiling() Option {
-	return func(options *options) {
-		options.mutextProfiling = true
-	}
-}
-
 type (
 	// Option configures the GCP runtime with specific options.
 	Option  func(*options)
@@ -97,10 +97,9 @@ type (
 		service string
 		version string
 
-		logOpts         []gcp.Option
-		metricOpts      []otlpmetricgrpc.Option
-		traceOpts       []otlptracegrpc.Option
-		profilerOpts    []option.ClientOption
-		mutextProfiling bool
+		logOpts      []gcp.Option
+		metricOpts   []otlpmetricgrpc.Option
+		traceOpts    []otlptracegrpc.Option
+		profilerOpts []option.ClientOption
 	}
 )

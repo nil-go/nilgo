@@ -26,6 +26,7 @@ func main() {
 	switch {
 	case metadata.OnGCE():
 		opts, err := gcp.Options(
+			gcp.WithLog(),
 			gcp.WithTrace(),
 			gcp.WithMetric(),
 			gcp.WithProfiler(),

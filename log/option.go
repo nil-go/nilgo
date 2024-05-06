@@ -5,17 +5,7 @@ package log
 
 import (
 	"context"
-	"log/slog"
 )
-
-// WithHandler provides a customized slog.Handler.
-//
-// By default, it uses the default handler in [slog].
-func WithHandler(handler slog.Handler) Option {
-	return func(options *options) {
-		options.handler = handler
-	}
-}
 
 // WithSampler provides a sampler function which decides whether Info logs should write to output.
 //
@@ -30,7 +20,6 @@ type (
 	// Option configures the logger with specific options.
 	Option  func(*options)
 	options struct {
-		handler slog.Handler
 		sampler func(context.Context) bool
 	}
 )
