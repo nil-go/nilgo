@@ -54,14 +54,14 @@ func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 	}
 
 	if option.logOpts != nil {
-		option.logOpts = append(option.logOpts, gcp.WithErrorReporting(option.service, option.version))
+		option.logOpts = append([]gcp.Option{gcp.WithErrorReporting(option.service, option.version)}, option.logOpts...)
 	}
 	if option.project == "" {
 		return []any{gcp.New(option.logOpts...)}, nil
 	}
 
 	if option.traceOpts != nil {
-		option.logOpts = append(option.logOpts, gcp.WithTrace(option.project))
+		option.logOpts = append([]gcp.Option{gcp.WithTrace(option.project)}, option.logOpts...)
 	}
 	appOpts := []any{gcp.New(option.logOpts...)}
 
