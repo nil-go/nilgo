@@ -65,12 +65,14 @@ func Run(args ...any) error { //nolint:cyclop
 		}
 	}
 
-	if option.traceProvider != nil {
-		// Append log sampler at the beginning so it can be overridden by user.
-		option.logOpts = append([]log.Option{log.WithSampler(traceSampler())}, option.logOpts...)
+	if option.logHandler != nil {
+		if option.traceProvider != nil {
+			// Append log sampler at the beginning so it can be overridden by user.
+			option.logOpts = append([]log.Option{log.WithSampler(traceSampler())}, option.logOpts...)
+		}
+		slog.SetDefault(log.New(option.logHandler, option.logOpts...))
+		slog.Info("Logger has been initialized.")
 	}
-	slog.SetDefault(log.New(option.logOpts...))
-	slog.Info("Logger has been initialized.")
 
 	if option.traceProvider != nil {
 		otel.SetTracerProvider(option.traceProvider)
@@ -105,10 +107,13 @@ func traceSampler() func(ctx context.Context) bool {
 }
 
 type options struct {
+	logOpts []log.Option
+	runOpts []run.Option
+	runners []func(context.Context) error
+
+	// Below are for internal usage. May switch to Provider in the future.
 	loaders       []konf.Loader
-	logOpts       []log.Option
-	runOpts       []run.Option
-	runners       []func(context.Context) error
+	logHandler    slog.Handler
 	traceProvider trace.TracerProvider
 	meterProvider metric.MeterProvider
 }
@@ -120,12 +125,8 @@ func (o *options) apply(args []any) error { //nolint:cyclop
 			if err := o.apply(opt()); err != nil {
 				return err
 			}
-		case konf.Loader:
-			o.loaders = append(o.loaders, opt)
 		case config.Option:
 			// Already handled.
-		case slog.Handler:
-			o.logOpts = append(o.logOpts, log.WithHandler(opt))
 		case log.Option:
 			o.logOpts = append(o.logOpts, opt)
 		case trace.TracerProvider:
@@ -135,6 +136,10 @@ func (o *options) apply(args []any) error { //nolint:cyclop
 			}); ok {
 				o.runOpts = append(o.runOpts, run.WithPostRun(provider.Shutdown))
 			}
+		case konf.Loader:
+			o.loaders = append(o.loaders, opt)
+		case slog.Handler:
+			o.logHandler = opt
 		case metric.MeterProvider:
 			o.meterProvider = opt
 			if provider, ok := opt.(interface {

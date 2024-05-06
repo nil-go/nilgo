@@ -34,17 +34,18 @@ import (
 	"github.com/nil-go/sloth/sampling"
 )
 
-// New creates a new slog.Logger with the given Option(s).
-func New(opts ...Option) *slog.Logger {
+// New creates a new slog.Logger with the given handler and Option(s).
+func New(handler slog.Handler, opts ...Option) *slog.Logger {
+	if handler == nil {
+		return slog.Default()
+	}
+
 	option := options{}
 	for _, opt := range opts {
 		opt(&option)
 	}
-	if option.handler == nil {
-		return slog.Default()
-	}
 
-	var handler slog.Handler = rate.New(option.handler)
+	handler = rate.New(handler)
 	if option.sampler != nil {
 		handler = sampling.New(handler, option.sampler)
 	}

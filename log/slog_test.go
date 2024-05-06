@@ -65,7 +65,7 @@ func TestNew(t *testing.T) {
 			t.Parallel()
 
 			var buf bytes.Buffer
-			logger := log.New(append(testcase.opts, log.WithHandler(slog.NewJSONHandler(&buf, &slog.HandlerOptions{
+			logger := log.New(slog.NewJSONHandler(&buf, &slog.HandlerOptions{
 				ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 					if a.Key == slog.TimeKey && len(groups) == 0 {
 						return slog.Attr{}
@@ -73,7 +73,7 @@ func TestNew(t *testing.T) {
 
 					return a
 				},
-			})))...)
+			}), testcase.opts...)
 
 			ctx, cancel := sampling.WithBuffer(context.Background())
 			defer cancel()
