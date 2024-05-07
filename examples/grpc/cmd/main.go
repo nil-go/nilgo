@@ -12,6 +12,7 @@ import (
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
+	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/gcp"
 	"github.com/nil-go/nilgo/gcp/profiler"
 	ngrpc "github.com/nil-go/nilgo/grpc"
@@ -35,7 +36,7 @@ func main() {
 		}
 		args = append(args, opts...)
 	default:
-		args = append(args, nilgo.PProf)
+		args = append(args, dev.PProf)
 	}
 	args = append(args,
 		config.WithFS(configFS),

@@ -14,6 +14,7 @@ import (
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
+	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/gcp"
 	nhttp "github.com/nil-go/nilgo/http"
 )
@@ -36,7 +37,7 @@ func main() {
 		}
 		args = append(args, opts...)
 	default:
-		args = append(args, nilgo.PProf)
+		args = append(args, dev.PProf)
 	}
 
 	mux := http.NewServeMux()

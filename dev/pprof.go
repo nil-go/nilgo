@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package nilgo
+package dev
 
 import (
 	"context"
@@ -10,25 +10,15 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"net/http/pprof"
+	_ "net/http/pprof" //nolint:gosec
 	"runtime"
 	"time"
 )
 
 // PProf starts a pprof server at localhost:6060.
-//
 // If port 6060 is not available, it will try to find an available port.
 func PProf(ctx context.Context) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/debug/pprof/", pprof.Index)
-	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	server := &http.Server{
-		Handler:     mux,
-		ReadTimeout: time.Second,
-	}
+	server := &http.Server{ReadTimeout: time.Second}
 
 	defer context.AfterFunc(ctx, func() {
 		slog.LogAttrs(ctx, slog.LevelInfo, "Starting shutdown pprof Server...")
