@@ -21,7 +21,7 @@ func TestPProf(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		assert.NoError(t, nilgo.Run(dev.PProf))
+		assert.NoError(t, nilgo.Run(dev.Pprof))
 	}()
 	time.Sleep(100 * time.Millisecond) // wait for pprof server to start.
 

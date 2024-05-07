@@ -25,7 +25,7 @@ func main() {
 	var args []any
 	switch {
 	case metadata.OnGCE():
-		opts, err := gcp.Options(
+		opts, err := gcp.Args(
 			gcp.WithLog(),
 			gcp.WithTrace(),
 			gcp.WithMetric(),
@@ -36,7 +36,7 @@ func main() {
 		}
 		args = append(args, opts...)
 	default:
-		args = append(args, dev.PProf)
+		args = append(args, dev.Pprof)
 	}
 	args = append(args,
 		config.WithFS(configFS),

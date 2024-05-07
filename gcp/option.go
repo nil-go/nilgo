@@ -21,7 +21,7 @@ func WithProject(project string) Option {
 
 // WithService provides the GCP service name.
 //
-// By default, it reads from environment variable "K_SERVICE" if it's running on GCP.
+// By default, it reads from environment variable "K_SERVICE" if it's running on Google Cloud Run.
 func WithService(service string) Option {
 	return func(options *options) {
 		options.service = service
@@ -30,7 +30,7 @@ func WithService(service string) Option {
 
 // WithVersion provides the GCP service version.
 //
-// By default, it reads from environment variable "K_REVISION" if it's running on GCP.
+// By default, it reads from environment variable "K_REVISION" if it's running on Google Cloud Run.
 func WithVersion(version string) Option {
 	return func(options *options) {
 		options.version = version

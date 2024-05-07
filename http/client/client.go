@@ -1,6 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
+// Package client provides opinionated production-ready HTTP  client.
 package client
 
 import (

@@ -1,6 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
+// Package profiler enables the Cloud Profiler for the application.
 package profiler
 
 import (
@@ -12,6 +13,10 @@ import (
 	"google.golang.org/api/option"
 )
 
+// Run starts the Cloud Profiler with given options.
+//
+// It's not indented to be used directly in the application.
+// Please use [gcp.WithProfiler] instead.
 func Run(opts ...option.ClientOption) func(context.Context) error {
 	return func(ctx context.Context) error {
 		config := profiler.Config{}

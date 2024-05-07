@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-// PProf starts a pprof server at localhost:6060.
+// Pprof starts a pprof server at localhost:6060.
 // If port 6060 is not available, it will try to find an available port.
-func PProf(ctx context.Context) error {
+func Pprof(ctx context.Context) error {
 	server := &http.Server{ReadTimeout: time.Second}
 
 	defer context.AfterFunc(ctx, func() {
