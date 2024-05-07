@@ -33,37 +33,32 @@ import (
 	"github.com/nil-go/nilgo/gcp/profiler"
 )
 
-// Options provides the [nilgo.Run] options for application runs on GCP.
-//
-// By default, only logging and error reporting are configured.
-// Profiler need to enable explicitly
-// using corresponding Option(s).
-func Options(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
+// Args provides the [nilgo.Run] args with given options for application runs on GCP.
+func Args(opts ...Option) ([]any, error) { //nolint:cyclop,funlen
 	option := options{}
 	for _, opt := range opts {
 		opt(&option)
 	}
-	if option.project == "" {
-		option.project, _ = metadata.ProjectID()
-	}
+
+	// Get service and version from Google Cloud Run environment variables.
 	if option.service == "" {
 		option.service = os.Getenv("K_SERVICE")
 	}
 	if option.version == "" {
 		option.version = os.Getenv("K_REVISION")
 	}
+	if option.project == "" {
+		option.project, _ = metadata.ProjectID()
+	}
 
+	var appOpts []any
 	if option.logOpts != nil {
 		option.logOpts = append([]gcp.Option{gcp.WithErrorReporting(option.service, option.version)}, option.logOpts...)
+		if option.traceOpts != nil {
+			option.logOpts = append([]gcp.Option{gcp.WithTrace(option.project)}, option.logOpts...)
+		}
+		appOpts = append(appOpts, gcp.New(option.logOpts...))
 	}
-	if option.project == "" {
-		return []any{gcp.New(option.logOpts...)}, nil
-	}
-
-	if option.traceOpts != nil {
-		option.logOpts = append([]gcp.Option{gcp.WithTrace(option.project)}, option.logOpts...)
-	}
-	appOpts := []any{gcp.New(option.logOpts...)}
 
 	res := resource.Default()
 	ctx := context.Background()

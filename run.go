@@ -1,6 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
+// Package nilgo provides a simple way to bootstrap an application.
 package nilgo
 
 import (
@@ -27,14 +28,14 @@ import (
 // The running can be interrupted if any runner returns non-nil error, or it receives an OS signal.
 // It waits all runners return unless it's forcefully killed by OS.
 //
-// For now, it only can pass one of following types for args:
+// For now, it supports passing one of following types as args:
 //   - config.Option
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
 //
 // By default, above args are statics which could not change according to the configuration.
-// If the args need to by dynamic, it should be wrapped in func() []any,
+// If the args need to by dynamic, it should be wrapped in `func() []any`,
 // which returns args according to the configuration.
 func Run(args ...any) error { //nolint:cyclop
 	// Setup configuration first so others can use it.

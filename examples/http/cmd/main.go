@@ -14,6 +14,7 @@ import (
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
+	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/gcp"
 	nhttp "github.com/nil-go/nilgo/http"
 )
@@ -25,7 +26,7 @@ func main() {
 	var args []any
 	switch {
 	case metadata.OnGCE():
-		opts, err := gcp.Options(
+		opts, err := gcp.Args(
 			gcp.WithLog(),
 			gcp.WithTrace(),
 			gcp.WithMetric(),
@@ -36,7 +37,7 @@ func main() {
 		}
 		args = append(args, opts...)
 	default:
-		args = append(args, nilgo.PProf)
+		args = append(args, dev.Pprof)
 	}
 
 	mux := http.NewServeMux()

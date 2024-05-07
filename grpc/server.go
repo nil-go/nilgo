@@ -1,6 +1,9 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
+// Package grpc provides opinionated production-ready gRPC server.
+//
+// It also redirect gRPC log to slog using init function.
 package grpc
 
 import (
@@ -13,6 +16,7 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -132,4 +136,9 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 
 		return nil
 	}
+}
+
+func init() { //nolint:init
+	// Redirect gRPC log to slog.
+	grpclog.SetLoggerV2(internal.NewSlogger(slog.Default().Handler()))
 }

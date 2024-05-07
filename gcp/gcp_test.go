@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"testing"
 
-	sgcp "github.com/nil-go/sloth/gcp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -27,11 +26,9 @@ func TestOptions(t *testing.T) {
 		assertion   func(*testing.T, []any)
 	}{
 		{
-			description: "with project",
+			description: "with log",
 			opts: []gcp.Option{
-				gcp.WithProject("project"),
-				gcp.WithService("service"),
-				gcp.WithVersion("version"),
+				gcp.WithLog(),
 			},
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
@@ -42,38 +39,10 @@ func TestOptions(t *testing.T) {
 			},
 		},
 		{
-			description: "with options",
+			description: "with log and trace",
 			opts: []gcp.Option{
 				gcp.WithProject("project"),
-			},
-			assertion: func(t *testing.T, opts []any) {
-				t.Helper()
-
-				assert.Len(t, opts, 1)
-				_, ok := opts[0].(slog.Handler)
-				assert.True(t, ok)
-			},
-		},
-		{
-			description: "with profiler",
-			opts: []gcp.Option{
-				gcp.WithProject("project"),
-				gcp.WithProfiler(profiler.WithMutexProfiling()),
-			},
-			assertion: func(t *testing.T, opts []any) {
-				t.Helper()
-
-				assert.Len(t, opts, 2)
-				_, ok := opts[0].(slog.Handler)
-				assert.True(t, ok)
-				_, ok = opts[1].(func(context.Context) error)
-				assert.True(t, ok)
-			},
-		},
-		{
-			description: "with trace",
-			opts: []gcp.Option{
-				gcp.WithProject("project"),
+				gcp.WithLog(),
 				gcp.WithTrace(),
 			},
 			assertion: func(t *testing.T, opts []any) {
@@ -87,6 +56,34 @@ func TestOptions(t *testing.T) {
 			},
 		},
 		{
+			description: "with profiler",
+			opts: []gcp.Option{
+				gcp.WithProject("project"),
+				gcp.WithProfiler(profiler.WithMutexProfiling()),
+			},
+			assertion: func(t *testing.T, opts []any) {
+				t.Helper()
+
+				assert.Len(t, opts, 1)
+				_, ok := opts[0].(func(context.Context) error)
+				assert.True(t, ok)
+			},
+		},
+		{
+			description: "with trace",
+			opts: []gcp.Option{
+				gcp.WithProject("project"),
+				gcp.WithTrace(),
+			},
+			assertion: func(t *testing.T, opts []any) {
+				t.Helper()
+
+				assert.Len(t, opts, 1)
+				_, ok := opts[0].(*trace.TracerProvider)
+				assert.True(t, ok)
+			},
+		},
+		{
 			description: "with metric",
 			opts: []gcp.Option{
 				gcp.WithProject("project"),
@@ -95,24 +92,8 @@ func TestOptions(t *testing.T) {
 			assertion: func(t *testing.T, opts []any) {
 				t.Helper()
 
-				assert.Len(t, opts, 2)
-				_, ok := opts[0].(slog.Handler)
-				assert.True(t, ok)
-				_, ok = opts[1].(*metric.MeterProvider)
-				assert.True(t, ok)
-			},
-		},
-		{
-			description: "without project",
-			opts: []gcp.Option{
-				gcp.WithLog(sgcp.WithLevel(slog.LevelError)),
-				gcp.WithProfiler(),
-			},
-			assertion: func(t *testing.T, opts []any) {
-				t.Helper()
-
 				assert.Len(t, opts, 1)
-				_, ok := opts[0].(slog.Handler)
+				_, ok := opts[0].(*metric.MeterProvider)
 				assert.True(t, ok)
 			},
 		},
@@ -124,7 +105,7 @@ func TestOptions(t *testing.T) {
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
-			opts, err := gcp.Options(testcase.opts...)
+			opts, err := gcp.Args(testcase.opts...)
 			require.NoError(t, err)
 			testcase.assertion(t, opts)
 		})

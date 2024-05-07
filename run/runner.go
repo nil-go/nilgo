@@ -1,6 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
+// Package run provides a runner to execute runs in parallel with well-configured runtime.
 package run
 
 import (

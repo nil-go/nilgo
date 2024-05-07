@@ -12,6 +12,7 @@ import (
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/config"
+	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/gcp"
 	"github.com/nil-go/nilgo/gcp/profiler"
 	ngrpc "github.com/nil-go/nilgo/grpc"
@@ -24,7 +25,7 @@ func main() {
 	var args []any
 	switch {
 	case metadata.OnGCE():
-		opts, err := gcp.Options(
+		opts, err := gcp.Args(
 			gcp.WithLog(),
 			gcp.WithTrace(),
 			gcp.WithMetric(),
@@ -35,7 +36,7 @@ func main() {
 		}
 		args = append(args, opts...)
 	default:
-		args = append(args, nilgo.PProf)
+		args = append(args, dev.Pprof)
 	}
 	args = append(args,
 		config.WithFS(configFS),

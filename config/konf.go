@@ -7,14 +7,13 @@
 //
 // It loads configuration from the following sources,
 // and each source takes precedence over the sources below it:
-//
+//   - environment variables which matches the following pattern:
+//     prefix + "_" + key, all in ALL CAPS.
+//     For example, FOO_BAR is the name of environment variable for configuration `foo.bar`.
 //   - config files specified by WithFS and WithFile.
 //     WithFile also can be overridden by the environment variable `CONFIG_FILE`.
 //     For example, if CONFIG_FILE = "f1, f2,f3", it will load f1, f2, and f3,
 //     and each file takes precedence over the files before it.
-//   - environment variables which matches the following pattern:
-//     prefix + "_" + key, all in ALL CAPS.
-//     For example, FOO_BAR is the name of environment variable for configuration `foo.bar`.
 //
 // [konf]: https://pkg.go.dev/github.com/nil-go/konf
 package config

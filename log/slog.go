@@ -9,11 +9,6 @@
 // However, if there exists an Error log, it records buffered Info logs for same request event they are not sampled.
 // It provides context for root cause analysis while Error happens.
 //
-// # Trace Integration
-//
-// It supports recording log records as trace span's events if it's enabled by WithLogAsTraceEvent.
-// It could significantly reduce the log volume then cost as trace is priced by number of span.
-//
 // # Rate limiting
 //
 // Applications often experience runs of errors, either because of a bug or because of a misbehaving user.
