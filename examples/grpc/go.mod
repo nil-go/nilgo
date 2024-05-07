@@ -4,19 +4,13 @@ go 1.21
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/nil-go/nilgo v0.0.0
-	github.com/nil-go/nilgo/gcp v0.0.0
-	github.com/nil-go/nilgo/grpc v0.0.0
+	github.com/nil-go/nilgo v0.1.0
+	github.com/nil-go/nilgo/gcp v0.1.0
+	github.com/nil-go/nilgo/grpc v0.1.0
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.uber.org/goleak v1.3.0
 	google.golang.org/grpc v1.63.2
-)
-
-replace (
-	github.com/nil-go/nilgo => ./../..
-	github.com/nil-go/nilgo/gcp => ./../../gcp
-	github.com/nil-go/nilgo/grpc => ./../../grpc
 )
 
 require (

@@ -6,16 +6,10 @@ toolchain go1.22.2
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/nil-go/nilgo v0.0.0
-	github.com/nil-go/nilgo/gcp v0.0.0
-	github.com/nil-go/nilgo/http v0.0.0
+	github.com/nil-go/nilgo v0.1.0
+	github.com/nil-go/nilgo/gcp v0.1.0
+	github.com/nil-go/nilgo/http v0.1.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0
-)
-
-replace (
-	github.com/nil-go/nilgo => ./../..
-	github.com/nil-go/nilgo/gcp => ./../../gcp
-	github.com/nil-go/nilgo/http => ./../../http
 )
 
 require (
