@@ -138,7 +138,7 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 	}
 }
 
-func init() { //nolint:init
+func init() { //nolint:gochecknoinits
 	// Redirect gRPC log to slog.
 	grpclog.SetLoggerV2(internal.NewSlogger(slog.Default().Handler()))
 }
