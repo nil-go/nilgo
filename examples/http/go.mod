@@ -2,8 +2,6 @@ module github.com/nil-go/nilgo/examples/http
 
 go 1.22
 
-toolchain go1.22.2
-
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
 	github.com/nil-go/nilgo v0.1.0
