@@ -11,12 +11,12 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.26.0
 	go.opentelemetry.io/otel/sdk v1.26.0
 	go.opentelemetry.io/otel/sdk/metric v1.26.0
-	google.golang.org/api v0.177.0
+	google.golang.org/api v0.180.0
 )
 
 require (
 	cloud.google.com/go v0.112.2 // indirect
-	cloud.google.com/go/auth v0.3.0 // indirect
+	cloud.google.com/go/auth v0.4.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
