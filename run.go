@@ -9,13 +9,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/nil-go/konf"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/log"
 	"github.com/nil-go/nilgo/run"
 )
@@ -29,40 +27,37 @@ import (
 // It waits all runners return unless it's forcefully killed by OS.
 //
 // For now, it supports passing one of following types as args:
-//   - config.Option
 //   - log.Option
 //   - run.Option
 //   - func(context.Context) error
-//
-// By default, above args are statics which could not change according to the configuration.
-// If the args need to by dynamic, it should be wrapped in `func() []any`,
-// which returns args according to the configuration.
-func Run(args ...any) error { //nolint:cyclop
-	// Setup configuration first so others can use it.
-	var configOpts []config.Option
+func Run(args ...any) error { //nolint:cyclop,funlen
+	var option options
 	for _, arg := range args {
-		if opt, ok := arg.(config.Option); ok {
-			configOpts = append(configOpts, opt)
-		}
-	}
-	cfg, err := config.New(configOpts...)
-	if err != nil {
-		return fmt.Errorf("init config: %w", err)
-	}
-	konf.SetDefault(cfg)
-
-	option := options{
-		runOpts: []run.Option{
-			run.WithPreRun(cfg.Watch),
-		},
-	}
-	if err := option.apply(args); err != nil {
-		return err
-	}
-
-	for _, loader := range option.loaders {
-		if err := cfg.Load(loader); err != nil {
-			return fmt.Errorf("init config: %w", err)
+		switch opt := arg.(type) {
+		case log.Option:
+			option.logOpts = append(option.logOpts, opt)
+		case trace.TracerProvider:
+			option.traceProvider = opt
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				option.runOpts = append(option.runOpts, run.WithPostRun(provider.Shutdown))
+			}
+		case slog.Handler:
+			option.logHandler = opt
+		case metric.MeterProvider:
+			option.meterProvider = opt
+			if provider, ok := opt.(interface {
+				Shutdown(ctx context.Context) error
+			}); ok {
+				option.runOpts = append(option.runOpts, run.WithPostRun(provider.Shutdown))
+			}
+		case run.Option:
+			option.runOpts = append(option.runOpts, opt)
+		case func(context.Context) error:
+			option.runners = append(option.runners, opt)
+		default:
+			return fmt.Errorf("unknown argument type: %T", opt) //nolint:err113
 		}
 	}
 
@@ -113,49 +108,7 @@ type options struct {
 	runners []func(context.Context) error
 
 	// Below are for internal usage. May switch to Provider in the future.
-	loaders       []konf.Loader
 	logHandler    slog.Handler
 	traceProvider trace.TracerProvider
 	meterProvider metric.MeterProvider
-}
-
-func (o *options) apply(args []any) error { //nolint:cyclop
-	for _, arg := range args {
-		switch opt := arg.(type) {
-		case func() []any:
-			if err := o.apply(opt()); err != nil {
-				return err
-			}
-		case config.Option:
-			// Already handled.
-		case log.Option:
-			o.logOpts = append(o.logOpts, opt)
-		case trace.TracerProvider:
-			o.traceProvider = opt
-			if provider, ok := opt.(interface {
-				Shutdown(ctx context.Context) error
-			}); ok {
-				o.runOpts = append(o.runOpts, run.WithPostRun(provider.Shutdown))
-			}
-		case konf.Loader:
-			o.loaders = append(o.loaders, opt)
-		case slog.Handler:
-			o.logHandler = opt
-		case metric.MeterProvider:
-			o.meterProvider = opt
-			if provider, ok := opt.(interface {
-				Shutdown(ctx context.Context) error
-			}); ok {
-				o.runOpts = append(o.runOpts, run.WithPostRun(provider.Shutdown))
-			}
-		case run.Option:
-			o.runOpts = append(o.runOpts, opt)
-		case func(context.Context) error:
-			o.runners = append(o.runners, opt)
-		default:
-			return fmt.Errorf("unknown argument type: %T", opt) //nolint:err113
-		}
-	}
-
-	return nil
 }
