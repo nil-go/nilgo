@@ -4,7 +4,6 @@
 package main
 
 import (
-	"embed"
 	"log/slog"
 	"net/http"
 	"time"
@@ -13,14 +12,10 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/nil-go/nilgo"
-	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/gcp"
 	nhttp "github.com/nil-go/nilgo/http"
 )
-
-//go:embed config
-var configFS embed.FS
 
 func main() {
 	var args []any
@@ -63,11 +58,7 @@ func main() {
 		ReadTimeout: time.Second,
 	}
 	args = append(args,
-		config.WithFS(configFS),
-		nhttp.Run(
-			server,
-			nhttp.WithConfigService(),
-		),
+		nhttp.Run(server, nhttp.WithConfigService()),
 	)
 
 	if err := nilgo.Run(args...); err != nil {

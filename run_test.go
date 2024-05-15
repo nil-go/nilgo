@@ -9,14 +9,11 @@ import (
 	"errors"
 	"log/slog"
 	"testing"
-	"testing/fstest"
 
-	"github.com/nil-go/konf"
 	noopmetric "go.opentelemetry.io/otel/metric/noop"
 	nooptrace "go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/nil-go/nilgo"
-	"github.com/nil-go/nilgo/config"
 	"github.com/nil-go/nilgo/internal/assert"
 	"github.com/nil-go/nilgo/log"
 	"github.com/nil-go/nilgo/run"
@@ -39,25 +36,15 @@ func TestRun(t *testing.T) {
 			},
 		}),
 		log.WithSampler(func(context.Context) bool { return true }),
-		config.WithFS(fstest.MapFS{"config/config.yaml": {Data: []byte("nilgo:\n  source: fs")}}),
 		run.WithPreRun(func(context.Context) error {
 			started = true
 
 			return nil
 		}),
-		func() []any {
-			var args []any
-			if konf.Get[string]("nilgo.source") == "fs" {
-				args = append(args,
-					nooptrace.NewTracerProvider(),
-					noopmetric.NewMeterProvider(),
-				)
-			}
-
-			return args
-		},
+		nooptrace.NewTracerProvider(),
+		noopmetric.NewMeterProvider(),
 		func(context.Context) error {
-			slog.Info("info log", "source", konf.Get[string]("nilgo.source"))
+			slog.Info("info log")
 
 			return nil
 		},
@@ -68,7 +55,7 @@ func TestRun(t *testing.T) {
 	assert.Equal(t, `{"level":"INFO","msg":"Logger has been initialized."}
 {"level":"INFO","msg":"Trace provider has been initialized."}
 {"level":"INFO","msg":"Meter provider has been initialized."}
-{"level":"INFO","msg":"info log","source":"fs"}
+{"level":"INFO","msg":"info log"}
 `, buf.String())
 }
 
@@ -82,11 +69,6 @@ func TestRun_error(t *testing.T) {
 			description: "unknown argument type",
 			args:        []any{"unknown"},
 			err:         "unknown argument type: string",
-		},
-		{
-			description: "config error",
-			args:        []any{errLoader{}},
-			err:         "init config: load configuration: loader error",
 		},
 		{
 			description: "runner error",
@@ -107,10 +89,4 @@ func TestRun_error(t *testing.T) {
 			assert.Equal(t, testcase.err, err.Error())
 		})
 	}
-}
-
-type errLoader struct{}
-
-func (errLoader) Load() (map[string]any, error) {
-	return nil, errors.New("loader error")
 }
