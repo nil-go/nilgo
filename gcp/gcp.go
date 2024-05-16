@@ -17,11 +17,11 @@ import (
 	"github.com/nil-go/nilgo/gcp/profiler"
 )
 
-// Logger returns a slog.Logger integrated with [Cloud Logging] and [Cloud Error Reporting].
+// LogHandler returns a slog.Handler integrated with [Cloud Logging] and [Cloud Error Reporting].
 //
 // [Cloud Logging]: https://cloud.google.com/logging
 // [Cloud Error Reporting]: https://cloud.google.com/error-reporting
-func Logger(opts ...Option) *slog.Logger {
+func LogHandler(opts ...Option) slog.Handler {
 	option := options{}
 	option.apply(opts)
 	logOpts := append(
@@ -43,7 +43,7 @@ func Logger(opts ...Option) *slog.Logger {
 	)
 	handler = otel.New(handler)
 
-	return slog.New(handler)
+	return handler
 }
 
 // Profiler returns a function to start [Cloud Profiler].

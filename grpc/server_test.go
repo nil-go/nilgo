@@ -6,6 +6,7 @@ package grpc_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/nil-go/konf"
 	"github.com/stretchr/testify/assert"
@@ -116,6 +117,7 @@ func TestRun(t *testing.T) {
 				err := ngrpc.Run(testcase.server(), append(testcase.opts, ngrpc.WithAddress("unix://"+endpoint))...)(ctx)
 				assert.NoError(t, err)
 			}()
+			time.Sleep(100 * time.Millisecond) // wait for server to start
 
 			conn, err := grpc.NewClient(
 				"unix://"+endpoint,
