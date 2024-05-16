@@ -18,15 +18,15 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1"
 
+	"github.com/nil-go/nilgo"
 	ngrpc "github.com/nil-go/nilgo/grpc"
-	"github.com/nil-go/nilgo/run"
 )
 
 const endpoint = "unix:.grpc.sock"
 
 func TestMain(m *testing.M) {
 	server := grpc.NewServer()
-	runner := run.New(run.WithPreRun(ngrpc.Run(server, ngrpc.WithAddress(endpoint))))
+	runner := nilgo.New(nilgo.WithPreRun(ngrpc.Run(server, ngrpc.WithAddress(endpoint))))
 
 	if err := runner.Run(context.Background(), func(context.Context) error {
 		if m.Run() != 0 {
@@ -45,9 +45,8 @@ func TestMain(m *testing.M) {
 
 func TestHealthCheck(t *testing.T) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(
-		ctx, endpoint,
-		grpc.WithBlock(),
+	conn, err := grpc.NewClient(
+		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	require.NoError(t, err)
@@ -63,9 +62,8 @@ func TestHealthCheck(t *testing.T) {
 
 func TestReflection(t *testing.T) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(
-		ctx, endpoint,
-		grpc.WithBlock(),
+	conn, err := grpc.NewClient(
+		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	require.NoError(t, err)
