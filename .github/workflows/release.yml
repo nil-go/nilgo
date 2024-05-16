@@ -51,6 +51,7 @@ jobs:
         with:
           script: |
             const modules = [
+              'otlp',
               'gcp',
               'grpc',
               'http'

@@ -1,11 +1,12 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-// Package run provides a runner to execute runs in parallel with well-configured runtime.
-package run
+// Package nilgo provides a simple way to bootstrap an production-ready application.
+package nilgo
 
 import (
 	"context"
+	"errors"
 	"os/signal"
 	"slices"
 	"sync"
@@ -121,4 +122,29 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 			},
 		)...,
 	)
+}
+
+func parallel(ctx context.Context, runs ...func(context.Context) error) error {
+	ctx, cancel := context.WithCancelCause(ctx)
+	defer cancel(nil)
+
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(len(runs))
+	for _, run := range runs {
+		run := run
+		go func() {
+			defer waitGroup.Done()
+
+			if err := run(ctx); err != nil {
+				cancel(err)
+			}
+		}()
+	}
+	waitGroup.Wait()
+
+	if err := context.Cause(ctx); err != nil && !errors.Is(err, ctx.Err()) {
+		return err //nolint:wrapcheck
+	}
+
+	return nil
 }
