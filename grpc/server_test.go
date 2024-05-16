@@ -117,9 +117,8 @@ func TestRun(t *testing.T) {
 				assert.NoError(t, err)
 			}()
 
-			conn, err := grpc.DialContext(
-				ctx, "unix://"+endpoint,
-				grpc.WithBlock(),
+			conn, err := grpc.NewClient(
+				"unix://"+endpoint,
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
 			)
 			require.NoError(t, err)
