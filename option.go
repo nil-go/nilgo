@@ -50,6 +50,14 @@ func WithStopGate(gates ...func(context.Context) error) Option {
 	}
 }
 
+// WithLogHandler provides a slog.Handler to handle logs.
+func WithLogHandler(handler slog.Handler) Option {
+	return func(*options) {
+		slog.SetDefault(slog.New(handler))
+		slog.Info("Log handler has been initialized.")
+	}
+}
+
 // WithTraceProvider provides OpenTelemetry trace provider.
 func WithTraceProvider(provider trace.TracerProvider) Option {
 	return func(options *options) {
