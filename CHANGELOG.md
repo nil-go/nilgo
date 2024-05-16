@@ -7,13 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Support Open Telemetry with OTLP exporters (#61).
+
 ## [0.1.0] - 2024-05-07
 
 ### Added
 
 - Add Runner for parallel execution (#9).
 - Support gRPC server (#15).
-- Add nilgo.Run (#22).
-- Support GCP Cloud Run (#24).
 - Support HTTP server (#26).
-- Support open telemetry (#27).
+- Support GCP Cloud Run (#24).

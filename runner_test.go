@@ -1,7 +1,7 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package run_test
+package nilgo_test
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/internal/assert"
-	"github.com/nil-go/nilgo/run"
 )
 
 func TestRunner_Run(t *testing.T) {
@@ -20,7 +20,7 @@ func TestRunner_Run(t *testing.T) {
 
 	testcases := []struct {
 		description string
-		runner      run.Runner
+		runner      nilgo.Runner
 		ran         bool
 		err         string
 	}{
@@ -35,7 +35,7 @@ func TestRunner_Run(t *testing.T) {
 		},
 		{
 			description: "with pre-run",
-			runner: run.New(run.WithPreRun(func(ctx context.Context) error {
+			runner: nilgo.New(nilgo.WithPreRun(func(ctx context.Context) error {
 				<-ctx.Done()
 
 				return nil
@@ -44,20 +44,20 @@ func TestRunner_Run(t *testing.T) {
 		},
 		{
 			description: "pre-run error",
-			runner:      run.New(run.WithPreRun(func(context.Context) error { return errors.New("pre-run error") })),
+			runner:      nilgo.New(nilgo.WithPreRun(func(context.Context) error { return errors.New("pre-run error") })),
 			err:         "pre-run error",
 			ran:         true,
 		},
 		{
 			description: "with post-run",
-			runner: run.New(run.WithPostRun(func(context.Context) error {
+			runner: nilgo.New(nilgo.WithPostRun(func(context.Context) error {
 				return nil
 			})),
 			ran: true,
 		},
 		{
 			description: "post-run error",
-			runner: run.New(run.WithPostRun(func(context.Context) error {
+			runner: nilgo.New(nilgo.WithPostRun(func(context.Context) error {
 				return errors.New("post-run error")
 			}),
 			),
@@ -66,22 +66,22 @@ func TestRunner_Run(t *testing.T) {
 		},
 		{
 			description: "with start gate",
-			runner:      run.New(run.WithStartGate(func(context.Context) error { return nil })),
+			runner:      nilgo.New(nilgo.WithStartGate(func(context.Context) error { return nil })),
 			ran:         true,
 		},
 		{
 			description: "start gate error",
-			runner:      run.New(run.WithStartGate(func(context.Context) error { return errors.New("start gate error") })),
+			runner:      nilgo.New(nilgo.WithStartGate(func(context.Context) error { return errors.New("start gate error") })),
 			err:         "start gate error",
 		},
 		{
 			description: "with stop gate",
-			runner:      run.New(run.WithStopGate(func(context.Context) error { return nil })),
+			runner:      nilgo.New(nilgo.WithStopGate(func(context.Context) error { return nil })),
 			ran:         true,
 		},
 		{
 			description: "stop gate error",
-			runner:      run.New(run.WithStopGate(func(context.Context) error { return errors.New("stop gate error") })),
+			runner:      nilgo.New(nilgo.WithStopGate(func(context.Context) error { return errors.New("stop gate error") })),
 			ran:         true,
 			err:         "stop gate error",
 		},
@@ -122,8 +122,8 @@ func TestRunner_Run_signal(t *testing.T) {
 
 	startTime := time.Now()
 	var ran bool
-	runner := run.New(
-		run.WithPostRun(func(context.Context) error {
+	runner := nilgo.New(
+		nilgo.WithPostRun(func(context.Context) error {
 			ran = ctx.Err() == nil
 
 			return nil
@@ -154,8 +154,8 @@ func TestRunner_Run_cancel(t *testing.T) {
 
 	startTime := time.Now()
 	var ran bool
-	runner := run.New(
-		run.WithPostRun(func(ctx context.Context) error {
+	runner := nilgo.New(
+		nilgo.WithPostRun(func(ctx context.Context) error {
 			ran = ctx.Err() == nil
 
 			return nil

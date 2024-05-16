@@ -1,9 +1,17 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-package run
+package nilgo
 
-import "context"
+import (
+	"context"
+	"log/slog"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+)
 
 // WithPreRun provides runs to execute before the main runs provided in Runner.Run.
 //
@@ -39,6 +47,48 @@ func WithStartGate(gates ...func(context.Context) error) Option {
 func WithStopGate(gates ...func(context.Context) error) Option {
 	return func(options *options) {
 		options.stopGates = append(options.stopGates, gates...)
+	}
+}
+
+// WithTraceProvider provides OpenTelemetry trace provider.
+func WithTraceProvider(provider trace.TracerProvider) Option {
+	return func(options *options) {
+		WithPreRun(func(context.Context) error {
+			otel.SetTracerProvider(provider)
+			otel.SetTextMapPropagator(
+				propagation.NewCompositeTextMapPropagator(
+					propagation.TraceContext{},
+					propagation.Baggage{},
+				),
+			)
+			slog.Info("Trace provider has been initialized.")
+
+			return nil
+		})(options)
+
+		if provider, ok := provider.(interface {
+			Shutdown(ctx context.Context) error
+		}); ok {
+			WithPostRun(provider.Shutdown)(options)
+		}
+	}
+}
+
+// WithMeterProvider provides OpenTelemetry metric provider.
+func WithMeterProvider(provider metric.MeterProvider) Option {
+	return func(options *options) {
+		WithPreRun(func(context.Context) error {
+			otel.SetMeterProvider(provider)
+			slog.Info("Meter provider has been initialized.")
+
+			return nil
+		})(options)
+
+		if provider, ok := provider.(interface {
+			Shutdown(ctx context.Context) error
+		}); ok {
+			WithPostRun(provider.Shutdown)(options)
+		}
 	}
 }
 

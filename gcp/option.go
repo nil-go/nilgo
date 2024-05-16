@@ -4,9 +4,10 @@
 package gcp
 
 import (
+	"os"
+
+	"cloud.google.com/go/compute/metadata"
 	"github.com/nil-go/sloth/gcp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"google.golang.org/api/option"
 )
 
@@ -47,39 +48,7 @@ func WithLog(opts ...gcp.Option) Option {
 	}
 }
 
-// WithTrace enables otlp trace provider with give otlptracegrpc.Option(s).
-// It requires the following IAM roles:
-//   - roles/cloudtrace.agent
-func WithTrace(opts ...otlptracegrpc.Option) Option {
-	return func(options *options) {
-		if options.traceOpts == nil {
-			options.traceOpts = []otlptracegrpc.Option{
-				otlptracegrpc.WithInsecure(),
-			}
-		}
-		options.traceOpts = append(options.traceOpts, opts...)
-	}
-}
-
-// WithMetric enables otlp metric provider with give otlpmetricgrpc.Option(s).
-// It requires the following IAM roles:
-//   - roles/monitoring.metricWriter
-func WithMetric(opts ...otlpmetricgrpc.Option) Option {
-	return func(options *options) {
-		if options.metricOpts == nil {
-			options.metricOpts = []otlpmetricgrpc.Option{
-				otlpmetricgrpc.WithInsecure(),
-			}
-		}
-		options.metricOpts = append(options.metricOpts, opts...)
-	}
-}
-
-// WithProfiler enables Google [Cloud Profiler].
-// It requires the following IAM roles:
-//   - roles/cloudprofiler.agent
-//
-// [Cloud Profiler]: https://cloud.google.com/profiler
+// WithProfiler provides the option.ClientOption(s) to configure the profiler.
 func WithProfiler(opts ...option.ClientOption) Option {
 	return func(options *options) {
 		if options.profilerOpts == nil {
@@ -98,8 +67,23 @@ type (
 		version string
 
 		logOpts      []gcp.Option
-		metricOpts   []otlpmetricgrpc.Option
-		traceOpts    []otlptracegrpc.Option
 		profilerOpts []option.ClientOption
 	}
 )
+
+func (o *options) apply(opts []Option) {
+	for _, opt := range opts {
+		opt(o)
+	}
+
+	// Get service and version from Google Cloud Run environment variables.
+	if o.service == "" {
+		o.service = os.Getenv("K_SERVICE")
+	}
+	if o.version == "" {
+		o.version = os.Getenv("K_REVISION")
+	}
+	if o.project == "" {
+		o.project, _ = metadata.ProjectID()
+	}
+}

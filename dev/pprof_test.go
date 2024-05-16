@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/dev"
 	"github.com/nil-go/nilgo/internal/assert"
 )
@@ -21,7 +20,7 @@ func TestPProf(t *testing.T) {
 	defer cancel()
 
 	go func() {
-		assert.NoError(t, nilgo.Run(dev.Pprof))
+		assert.NoError(t, dev.Pprof(ctx))
 	}()
 	time.Sleep(100 * time.Millisecond) // wait for pprof server to start.
 

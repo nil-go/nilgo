@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         module: [
-          '', 'gcp',
+          '', 'otlp', 'gcp',
           'grpc', 'examples/grpc',
           'http', 'examples/http'
         ]
