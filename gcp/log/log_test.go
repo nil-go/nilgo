@@ -14,7 +14,7 @@ import (
 func TestLogHandler(t *testing.T) {
 	t.Parallel()
 
-	assert.NotNil(t, log.Handler(
+	assert.NotNil(t, log.Logger(
 		log.WithService("test"),
 		log.WithVersion("dev"),
 		log.WithProject("project"),

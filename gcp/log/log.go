@@ -19,11 +19,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Handler returns a slog.Handler integrated with [Cloud Logging] and [Cloud Error Reporting].
+// Logger returns a slog.Logger which integrates with [Cloud Logging] and [Cloud Error Reporting].
 //
 // [Cloud Logging]: https://cloud.google.com/logging
 // [Cloud Error Reporting]: https://cloud.google.com/error-reporting
-func Handler(opts ...Option) slog.Handler {
+func Logger(opts ...Option) *slog.Logger {
 	option := options{}
 	for _, opt := range opts {
 		opt(&option)
@@ -58,5 +58,5 @@ func Handler(opts ...Option) slog.Handler {
 	)
 	handler = otel.New(handler)
 
-	return handler
+	return slog.New(handler)
 }
