@@ -4,42 +4,51 @@
 package main
 
 import (
+	"context"
+
 	"cloud.google.com/go/compute/metadata"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/dev"
-	"github.com/nil-go/nilgo/gcp"
+	"github.com/nil-go/nilgo/gcp/log"
 	"github.com/nil-go/nilgo/gcp/profiler"
 	ngrpc "github.com/nil-go/nilgo/grpc"
+	"github.com/nil-go/nilgo/otlp"
 )
 
 func main() {
-	var args []any
+	var (
+		opts []nilgo.Option
+		runs []func(context.Context) error
+	)
 	switch {
 	case metadata.OnGCE():
-		opts, err := gcp.Args(
-			gcp.WithLog(),
-			gcp.WithTrace(),
-			gcp.WithMetric(),
-			gcp.WithProfiler(profiler.WithMutexProfiling()),
-		)
+		opts = append(opts, nilgo.WithLogger(log.Logger()))
+		traceProvider, err := otlp.TraceProvider()
 		if err != nil {
 			panic(err)
 		}
-		args = append(args, opts...)
+		opts = append(opts, nilgo.WithTraceProvider(traceProvider))
+		meterProvider, err := otlp.MeterProvider()
+		if err != nil {
+			panic(err)
+		}
+		opts = append(opts, nilgo.WithMeterProvider(meterProvider))
+		runs = append(runs, profiler.Run(profiler.WithMutexProfiling()))
 	default:
-		args = append(args, dev.Pprof)
+		runs = append(runs, dev.Pprof)
 	}
-	args = append(args,
+
+	runs = append(runs,
 		ngrpc.Run(
 			ngrpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler())),
 			ngrpc.WithConfigService(),
 		),
 	)
 
-	if err := nilgo.Run(args...); err != nil {
+	if err := nilgo.New(opts...).Run(context.Background(), runs...); err != nil {
 		panic(err)
 	}
 }
