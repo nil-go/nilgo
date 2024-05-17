@@ -1,29 +1,44 @@
 // Copyright (c) 2024 The nilgo authors
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-// Package gcp provides customization for application runs on GCP.
-package gcp
+// Package log provides a slog.Handler integrated with [Cloud Logging].
+//
+// [Cloud Logging]: https://cloud.google.com/logging
+package log
 
 import (
 	"context"
 	"log/slog"
+	"os"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/nil-go/sloth/gcp"
 	"github.com/nil-go/sloth/otel"
 	"github.com/nil-go/sloth/rate"
 	"github.com/nil-go/sloth/sampling"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/nil-go/nilgo/gcp/profiler"
 )
 
-// LogHandler returns a slog.Handler integrated with [Cloud Logging] and [Cloud Error Reporting].
+// Handler returns a slog.Handler integrated with [Cloud Logging] and [Cloud Error Reporting].
 //
 // [Cloud Logging]: https://cloud.google.com/logging
 // [Cloud Error Reporting]: https://cloud.google.com/error-reporting
-func LogHandler(opts ...Option) slog.Handler {
+func Handler(opts ...Option) slog.Handler {
 	option := options{}
-	option.apply(opts)
+	for _, opt := range opts {
+		opt(&option)
+	}
+	// Get service and version from Google Cloud Run environment variables.
+	if option.service == "" {
+		option.service = os.Getenv("K_SERVICE")
+	}
+	if option.version == "" {
+		option.version = os.Getenv("K_REVISION")
+	}
+	if option.project == "" {
+		option.project, _ = metadata.ProjectID()
+	}
+
 	logOpts := append(
 		[]gcp.Option{
 			gcp.WithErrorReporting(option.service, option.version),
@@ -44,24 +59,4 @@ func LogHandler(opts ...Option) slog.Handler {
 	handler = otel.New(handler)
 
 	return handler
-}
-
-// Profiler returns a function to start [Cloud Profiler].
-// It requires the following IAM roles:
-//   - roles/cloudprofiler.agent
-//
-// [Cloud Profiler]: https://cloud.google.com/profiler
-func Profiler(opts ...Option) func(context.Context) error {
-	option := options{}
-	option.apply(opts)
-	profilerOpts := append(
-		[]profiler.Option{
-			profiler.WithProject(option.project),
-			profiler.WithService(option.service),
-			profiler.WithVersion(option.version),
-		},
-		option.profilerOpts...,
-	)
-
-	return profiler.Run(profilerOpts...)
 }
