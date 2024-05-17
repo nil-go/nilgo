@@ -50,11 +50,11 @@ func WithStopGate(gates ...func(context.Context) error) Option {
 	}
 }
 
-// WithLogHandler provides a slog.Handler to handle logs.
-func WithLogHandler(handler slog.Handler) Option {
+// WithLogger provides a slog.Logger to handle logs.
+func WithLogger(logger *slog.Logger) Option {
 	return func(*options) {
-		slog.SetDefault(slog.New(handler))
-		slog.Info("Log handler has been initialized.")
+		slog.SetDefault(logger)
+		slog.Info("Logger has been initialized.")
 	}
 }
 
