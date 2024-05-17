@@ -27,7 +27,7 @@ func main() {
 	)
 	switch {
 	case metadata.OnGCE():
-		opts = append(opts, nilgo.WithLogHandler(log.Handler()))
+		slog.SetDefault(log.Logger())
 		traceProvider, err := otlp.TraceProvider()
 		if err != nil {
 			panic(err)

@@ -4,10 +4,10 @@ go 1.21
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/nil-go/nilgo v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/gcp v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/grpc v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/otlp v0.0.0-20240517033837-12c6d46842db
+	github.com/nil-go/nilgo v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/gcp v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/grpc v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/otlp v0.0.0-20240517042753-8e4d846cbafb
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.uber.org/goleak v1.3.0

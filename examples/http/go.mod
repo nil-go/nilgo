@@ -4,10 +4,10 @@ go 1.22
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/nil-go/nilgo v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/gcp v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/http v0.1.1-0.20240517033837-12c6d46842db
-	github.com/nil-go/nilgo/otlp v0.0.0-20240517033837-12c6d46842db
+	github.com/nil-go/nilgo v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/gcp v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/http v0.1.1-0.20240517042753-8e4d846cbafb
+	github.com/nil-go/nilgo/otlp v0.0.0-20240517042753-8e4d846cbafb
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.51.0
 )
 
