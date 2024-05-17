@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-05-17
+
 ### Added
 - Support Open Telemetry with OTLP exporters (#61).
 
