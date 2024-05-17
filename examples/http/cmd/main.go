@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -13,26 +14,33 @@ import (
 
 	"github.com/nil-go/nilgo"
 	"github.com/nil-go/nilgo/dev"
-	"github.com/nil-go/nilgo/gcp"
+	"github.com/nil-go/nilgo/gcp/log"
+	"github.com/nil-go/nilgo/gcp/profiler"
 	nhttp "github.com/nil-go/nilgo/http"
+	"github.com/nil-go/nilgo/otlp"
 )
 
 func main() {
-	var args []any
+	var (
+		opts []nilgo.Option
+		runs []func(context.Context) error
+	)
 	switch {
 	case metadata.OnGCE():
-		opts, err := gcp.Args(
-			gcp.WithLog(),
-			gcp.WithTrace(),
-			gcp.WithMetric(),
-			gcp.WithProfiler(),
-		)
+		opts = append(opts, nilgo.WithLogHandler(log.Handler()))
+		traceProvider, err := otlp.TraceProvider()
 		if err != nil {
 			panic(err)
 		}
-		args = append(args, opts...)
+		opts = append(opts, nilgo.WithTraceProvider(traceProvider))
+		meterProvider, err := otlp.MeterProvider()
+		if err != nil {
+			panic(err)
+		}
+		opts = append(opts, nilgo.WithMeterProvider(meterProvider))
+		runs = append(runs, profiler.Run(profiler.WithMutexProfiling()))
 	default:
-		args = append(args, dev.Pprof)
+		runs = append(runs, dev.Pprof)
 	}
 
 	mux := http.NewServeMux()
@@ -57,11 +65,11 @@ func main() {
 		})),
 		ReadTimeout: time.Second,
 	}
-	args = append(args,
+	runs = append(runs,
 		nhttp.Run(server, nhttp.WithConfigService()),
 	)
 
-	if err := nilgo.Run(args...); err != nil {
+	if err := nilgo.New(opts...).Run(context.Background(), runs...); err != nil {
 		panic(err)
 	}
 }
