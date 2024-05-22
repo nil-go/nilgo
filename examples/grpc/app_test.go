@@ -55,7 +55,7 @@ func TestHealthCheck(t *testing.T) {
 	}()
 
 	hcClient := grpc_health_v1.NewHealthClient(conn)
-	hcResp, err := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+	hcResp, err := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{}, grpc.WaitForReady(true))
 	require.NoError(t, err)
 	require.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, hcResp.GetStatus())
 }
@@ -72,7 +72,7 @@ func TestReflection(t *testing.T) {
 	}()
 
 	refClient := grpc_reflection_v1.NewServerReflectionClient(conn)
-	stream, err := refClient.ServerReflectionInfo(ctx)
+	stream, err := refClient.ServerReflectionInfo(ctx, grpc.WaitForReady(true))
 	require.NoError(t, err)
 	require.NoError(t, stream.CloseSend())
 }
