@@ -6,7 +6,6 @@ package grpc_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/nil-go/konf"
 	"github.com/stretchr/testify/assert"
@@ -117,7 +116,6 @@ func TestRun(t *testing.T) {
 				err := ngrpc.Run(testcase.server(), append(testcase.opts, ngrpc.WithAddress("unix://"+endpoint))...)(ctx)
 				assert.NoError(t, err)
 			}()
-			time.Sleep(100 * time.Millisecond) // wait for server to start
 
 			conn, err := grpc.NewClient(
 				"unix://"+endpoint,
@@ -126,12 +124,12 @@ func TestRun(t *testing.T) {
 			require.NoError(t, err)
 
 			hcClient := grpc_health_v1.NewHealthClient(conn)
-			hcResp, err := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+			hcResp, err := hcClient.Check(ctx, &grpc_health_v1.HealthCheckRequest{}, grpc.WaitForReady(true))
 			require.NoError(t, err)
 			require.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, hcResp.GetStatus())
 
 			refClient := grpc_reflection_v1.NewServerReflectionClient(conn)
-			stream, err := refClient.ServerReflectionInfo(ctx)
+			stream, err := refClient.ServerReflectionInfo(ctx, grpc.WaitForReady(true))
 			require.NoError(t, err)
 			require.NoError(t, stream.CloseSend())
 
