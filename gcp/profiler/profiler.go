@@ -38,7 +38,7 @@ func Run(opts ...option.ClientOption) func(context.Context) error {
 			config.ServiceVersion = os.Getenv("K_REVISION")
 		}
 		if config.ProjectID == "" {
-			config.ProjectID, _ = metadata.ProjectID()
+			config.ProjectID, _ = metadata.ProjectIDWithContext(ctx)
 		}
 
 		if err := profiler.Start(config, opts...); err != nil {

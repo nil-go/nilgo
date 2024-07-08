@@ -36,7 +36,7 @@ func Logger(opts ...Option) *slog.Logger {
 		option.version = os.Getenv("K_REVISION")
 	}
 	if option.project == "" {
-		option.project, _ = metadata.ProjectID()
+		option.project, _ = metadata.ProjectIDWithContext(context.Background())
 	}
 
 	logOpts := append(
