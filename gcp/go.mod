@@ -3,7 +3,7 @@ module github.com/nil-go/nilgo/gcp
 go 1.21
 
 require (
-	cloud.google.com/go/compute/metadata v0.4.0
+	cloud.google.com/go/compute/metadata v0.5.0
 	cloud.google.com/go/profiler v0.4.1
 	github.com/nil-go/sloth v0.3.0
 	github.com/nil-go/sloth/otel v0.3.0
