@@ -9,12 +9,12 @@ require (
 	github.com/nil-go/sloth/otel v0.3.0
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel/trace v1.28.0
-	google.golang.org/api v0.191.0
+	google.golang.org/api v0.192.0
 )
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
-	cloud.google.com/go/auth v0.7.3 // indirect
+	cloud.google.com/go/auth v0.8.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
