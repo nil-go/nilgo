@@ -45,8 +45,6 @@ func TestRecoveryUnaryInterceptor(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
-
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
@@ -95,15 +93,13 @@ func TestRecoveryStreamInterceptor(t *testing.T) {
 			handler: func(any, grpc.ServerStream) error {
 				panic("panic from handler")
 			},
-			log: `level=ERROR source=/recovery_test.go:96 msg="Panic Recovered" error="panic from handler"
+			log: `level=ERROR source=/recovery_test.go:94 msg="Panic Recovered" error="panic from handler"
 `,
 			err: "rpc error: code = Internal desc = ",
 		},
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
-
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
 
