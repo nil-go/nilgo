@@ -1,5 +1,5 @@
-github.com/nil-go/konf v1.2.2 h1:rkiYVk8zsol9591/YYV2zKt5VqJb4R/VgbXFHIUitrE=
-github.com/nil-go/konf v1.2.2/go.mod h1:ULW6PmJzWMd0F4KKNJQPhWD6Zu5eoX9U1C9SW2BPAr4=
+github.com/nil-go/konf v1.3.0 h1:hAY6+8ZX5AzWexs3+G7MQ9a54WgTOtNgolZwUMQ8bUE=
+github.com/nil-go/konf v1.3.0/go.mod h1:bQLME1hPLOejP89PlJGJ9DuofOKTsy/JcOjvWRHf0Fg=
 github.com/nil-go/sloth v0.3.0 h1:lAqd8/pH6psoXZDpScCefY+3V9PVfJnIyOqMK1GSvwo=
 github.com/nil-go/sloth v0.3.0/go.mod h1:SE8dLU9DLYeuLtu3kHp9PUEyj0OwUGKvTjSpx8tPdwo=
 golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
