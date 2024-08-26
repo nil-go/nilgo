@@ -59,7 +59,6 @@ func (r Runner) Run(ctx context.Context, runs ...func(context.Context) error) er
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(len(r.preRuns))
 		for _, run := range r.preRuns {
-			run := run
 			preRuns = append(preRuns,
 				func(ctx context.Context) error {
 					waitGroup.Done()
@@ -131,7 +130,6 @@ func parallel(ctx context.Context, runs ...func(context.Context) error) error {
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(runs))
 	for _, run := range runs {
-		run := run
 		go func() {
 			defer waitGroup.Done()
 

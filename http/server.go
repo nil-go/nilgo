@@ -100,7 +100,6 @@ func Run(server *http.Server, opts ...Option) func(context.Context) error { //no
 			}
 		}
 		for _, addr := range option.addresses {
-			addr := addr
 			go func() {
 				defer waitGroup.Done()
 
