@@ -51,18 +51,20 @@ func main() {
 		}
 	})
 	server := &http.Server{
-		Handler: otelhttp.NewHandler(mux, "", otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
-			if operation != "" {
-				return operation
-			}
+		Handler: otelhttp.NewHandler(mux, "", otelhttp.WithSpanNameFormatter(
+			func(operation string, req *http.Request) string {
+				if operation != "" {
+					return operation
+				}
 
-			method := r.Method
-			if method == "" {
-				method = "GET"
-			}
+				method := req.Method
+				if method == "" {
+					method = "GET"
+				}
 
-			return method + " " + r.URL.Path
-		})),
+				return method + " " + req.URL.Path
+			}),
+		),
 		ReadTimeout: time.Second,
 	}
 	runs = append(runs,

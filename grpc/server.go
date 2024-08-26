@@ -106,7 +106,6 @@ func Run(server *grpc.Server, opts ...Option) func(context.Context) error { //no
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(len(option.addresses))
 		for _, addr := range option.addresses {
-			addr := addr
 			go func() {
 				defer waitGroup.Done()
 
