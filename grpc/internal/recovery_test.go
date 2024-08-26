@@ -93,7 +93,7 @@ func TestRecoveryStreamInterceptor(t *testing.T) {
 			handler: func(any, grpc.ServerStream) error {
 				panic("panic from handler")
 			},
-			log: `level=ERROR source=/recovery_test.go:96 msg="Panic Recovered" error="panic from handler"
+			log: `level=ERROR source=/recovery_test.go:94 msg="Panic Recovered" error="panic from handler"
 `,
 			err: "rpc error: code = Internal desc = ",
 		},
