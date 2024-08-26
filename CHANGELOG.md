@@ -7,9 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Removed
+
+- Remove support for Golang 1.21 (#122).
+
 ## [0.2.0] - 2024-05-17
 
 ### Added
+
 - Support Open Telemetry with OTLP exporters (#61).
 
 ## [0.1.0] - 2024-05-07
