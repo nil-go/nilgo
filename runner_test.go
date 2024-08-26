@@ -88,8 +88,6 @@ func TestRunner_Run(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
-
 		var ran bool
 		t.Run(testcase.description, func(t *testing.T) {
 			t.Parallel()
