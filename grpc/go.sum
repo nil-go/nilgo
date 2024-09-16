@@ -8,8 +8,8 @@ github.com/envoyproxy/protoc-gen-validate v1.0.4 h1:gVPz/FMfvh57HdSJQyvBtF00j8JU
 github.com/envoyproxy/protoc-gen-validate v1.0.4/go.mod h1:qys6tmnRsYrQqIhm2bvKZH4Blx/1gTIZ2UKVY1M+Yew=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/nil-go/konf v1.3.0 h1:hAY6+8ZX5AzWexs3+G7MQ9a54WgTOtNgolZwUMQ8bUE=
-github.com/nil-go/konf v1.3.0/go.mod h1:bQLME1hPLOejP89PlJGJ9DuofOKTsy/JcOjvWRHf0Fg=
+github.com/nil-go/konf v1.3.1 h1:x3uDomGFN5vtSKbxK1oyYRSinSfJ/ZIU8QX5uf/zn80=
+github.com/nil-go/konf v1.3.1/go.mod h1:bQLME1hPLOejP89PlJGJ9DuofOKTsy/JcOjvWRHf0Fg=
 github.com/nil-go/sloth v0.3.0 h1:lAqd8/pH6psoXZDpScCefY+3V9PVfJnIyOqMK1GSvwo=
 github.com/nil-go/sloth v0.3.0/go.mod h1:SE8dLU9DLYeuLtu3kHp9PUEyj0OwUGKvTjSpx8tPdwo=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
