@@ -9,11 +9,11 @@ require (
 	github.com/nil-go/sloth/otel v0.3.0
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel/trace v1.31.0
-	google.golang.org/api v0.200.0
+	google.golang.org/api v0.201.0
 )
 
 require (
-	cloud.google.com/go v0.115.1 // indirect
+	cloud.google.com/go v0.116.0 // indirect
 	cloud.google.com/go/auth v0.9.8 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -31,7 +31,6 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.26.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
