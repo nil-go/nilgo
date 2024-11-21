@@ -36,7 +36,12 @@ exporters:
     log:
       default_log_name: opentelemetry-collector
 
+extensions:
+  health_check:
+    endpoint: :13133
+
 service:
+  extensions: [health_check]
   pipelines:
     logs:
       receivers: [otlp]
