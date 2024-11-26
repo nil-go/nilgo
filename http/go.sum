@@ -1,8 +1,8 @@
-github.com/nil-go/konf v1.3.1 h1:x3uDomGFN5vtSKbxK1oyYRSinSfJ/ZIU8QX5uf/zn80=
-github.com/nil-go/konf v1.3.1/go.mod h1:bQLME1hPLOejP89PlJGJ9DuofOKTsy/JcOjvWRHf0Fg=
+github.com/nil-go/konf v1.4.0 h1:8zoCK+6cYwUFZNvH0HZcyNBMUL63G7J9IF5ldtZUy2c=
+github.com/nil-go/konf v1.4.0/go.mod h1:bQLME1hPLOejP89PlJGJ9DuofOKTsy/JcOjvWRHf0Fg=
 github.com/nil-go/sloth v0.3.0 h1:lAqd8/pH6psoXZDpScCefY+3V9PVfJnIyOqMK1GSvwo=
 github.com/nil-go/sloth v0.3.0/go.mod h1:SE8dLU9DLYeuLtu3kHp9PUEyj0OwUGKvTjSpx8tPdwo=
-golang.org/x/net v0.30.0 h1:AcW1SDZMkb8IpzCdQUaIq2sP4sZ4zw+55h6ynffypl4=
-golang.org/x/net v0.30.0/go.mod h1:2wGyMJ5iFasEhkwi13ChkO/t1ECNC4X4eBKkVFyYFlU=
-golang.org/x/text v0.19.0 h1:kTxAhCbGbxhK0IwgSKiMO5awPoDQ0RpfiVYBfK860YM=
-golang.org/x/text v0.19.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+golang.org/x/net v0.31.0 h1:68CPQngjLL0r2AlUKiSxtQFKvzRVbnzLwMUn5SzcLHo=
+golang.org/x/net v0.31.0/go.mod h1:P4fl1q7dY2hnZFxEk4pPSkDHF+QqjitcnDjUQyMM+pM=
+golang.org/x/text v0.20.0 h1:gK/Kv2otX8gz+wn7Rmb3vT96ZwuoxnQlY+HlJVj7Qug=
+golang.org/x/text v0.20.0/go.mod h1:D4IsuqiFMhST5bX19pQ9ikHC2GsaKyk/oF+pn3ducp4=

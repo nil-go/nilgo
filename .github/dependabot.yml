@@ -7,6 +7,10 @@ updates:
       - Skip-Changelog
     schedule:
       interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: /otlp
@@ -14,6 +18,10 @@ updates:
       - Skip-Changelog
     schedule:
       interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: /gcp
@@ -21,6 +29,10 @@ updates:
       - Skip-Changelog
     schedule:
       interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: /grpc
@@ -28,6 +40,10 @@ updates:
       - Skip-Changelog
     schedule:
       interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: /http
@@ -35,6 +51,10 @@ updates:
       - Skip-Changelog
     schedule:
       interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: github-actions
     directory: /
