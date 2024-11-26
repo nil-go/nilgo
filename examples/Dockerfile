@@ -3,7 +3,7 @@
 # See https://docs.docker.com/engine/reference/builder.
 # See https://docs.docker.com/develop/develop-images/multistage-build/.
 
-FROM golang:1.22-alpine as build
+FROM golang:1.23-alpine as build
 
 WORKDIR /app
 

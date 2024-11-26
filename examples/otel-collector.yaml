@@ -33,9 +33,20 @@ processors:
 
 exporters:
   googlecloud:
+    log:
+      default_log_name: opentelemetry-collector
+
+extensions:
+  health_check:
+    endpoint: :13133
 
 service:
+  extensions: [health_check]
   pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch, memory_limiter, resourcedetection, resource]
+      exporters: [googlecloud]
     traces:
       receivers: [otlp]
       processors: [batch, memory_limiter, resourcedetection, resource]
