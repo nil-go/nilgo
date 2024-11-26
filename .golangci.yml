@@ -85,11 +85,12 @@ linters:
     - gosmopolitan
     - govet
     - grouper
+    - iface
     - importas
     - inamedparam
     - ineffassign
     - interfacebloat
-    # intrange
+    - intrange
     - ireturn
     - lll
     - loggercheck
@@ -115,6 +116,7 @@ linters:
     - promlinter
     - protogetter
     - reassign
+    - recvcheck
     - revive
     - rowserrcheck
     - sloglint
@@ -140,7 +142,7 @@ linters:
     - whitespace
     - wrapcheck
     # wsl
-    - zerologlint
+    # zerologlint
 
 issues:
   exclude-rules:
