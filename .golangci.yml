@@ -148,6 +148,7 @@ issues:
       linters:
         - cyclop
         - err113
+        - errcheck
         - forcetypeassert
         - funlen
         - gochecknoglobals
